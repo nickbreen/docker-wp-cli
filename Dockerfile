@@ -17,3 +17,9 @@ RUN curl -sSfLo /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/build
 #RUN composer create-project wp-cli/wp-cli /usr/local/share/wp-cli --no-dev \
 #  && ln -s /usr/local/share/wp-cli/bin/wp /usr/local/bin/wp \
 #  && ls -l /usr/local/bin
+
+COPY /entrypoint.sh /wp-cli-entrypoint.sh
+RUN chmod +x /wp-cli-entrypoint.sh
+
+ENTRYPOINT ["/wp-cli-entrypoint.sh"]
+CMD ["/bin/bash"]
