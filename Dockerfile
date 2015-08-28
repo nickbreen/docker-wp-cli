@@ -18,8 +18,12 @@ RUN curl -sSfLo /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/build
 #  && ln -s /usr/local/share/wp-cli/bin/wp /usr/local/bin/wp \
 #  && ls -l /usr/local/bin
 
-COPY /entrypoint.sh /wp-cli-entrypoint.sh
-RUN chmod +x /wp-cli-entrypoint.sh
+RUN curl -sSfLo /usr/local/bin/docker-php-pecl-install https://raw.githubusercontent.com/helderco/docker-php/master/template/bin/docker-php-pecl-install \
+  && chmod +x /usr/local/bin/docker-php-pecl-install
+RUN docker-php-pecl-install oauth
 
-ENTRYPOINT ["/wp-cli-entrypoint.sh"]
+COPY entrypoint.sh oauth.php /
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash"]

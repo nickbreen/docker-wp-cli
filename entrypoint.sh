@@ -2,12 +2,17 @@
 
 function install {
   [ "$VERBOSE" ] && echo Installing
+
+  # Install core [configuration]
+
   wp core is-installed || wp core install \
       --url="$WP_URL" \
       --title="$WP_TITLE" \
       --admin_user="$WP_ADMIN_USER" \
       --admin_password="$WP_ADMIN_PASSWORD" \
       --admin_email="$WP_ADMIN_EMAIL"
+
+  # Install themes
 
   for T in $WP_THEMES; do
     wp theme is-installed $T || wp theme install $T
@@ -18,14 +23,29 @@ function install {
     wp theme is-installed ${T[0]} || wp theme install "${T[1]}"
   done
 
-  wp theme is-installed CherryFramework || wp theme install http://www.cherryframework.com/releases/CherryFramework.zip
-  #wp theme delete $(wp theme list --field=name | grep -ni 'CherryFramework|kidslink')
+  for URL in $BB_THEMES; do
+    ZIP=wp-content/themes/$(basename "$URL")
+    php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url "$URL" > $ZIP
+    wp theme install $ZIP
+    # TODO rename the top level directory from the zip
+  done
+
   [ "$VERBOSE" ] && wp theme list
+
+  # Install plugins
 
   for P in $WP_PLUGINS; do
     wp plugin is-installed $P || wp plugin install $P
   done
   wp plugin activate --all
+
+  for URL in $BB_PLUGINS; do
+    ZIP=wp-content/plugins/$(basename "$URL")
+    php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url "$URL" > $ZIP
+    wp plugin install $ZIP
+    # TODO rename the top level directory from the zip
+  done
+
   [ "$VERBOSE" ] && wp plugin list
 }
 
@@ -36,8 +56,7 @@ function upgrade {
       && wp theme update --all \
       && wp plugin update --all
 
-  (cd wp-content/plugins/kidslink; git pull)
-  (cd wp-content/themes/kidslink; git pull)
+  # TODO fetch [a specific] tagged download from BB
 }
 
 function import {
@@ -53,27 +72,15 @@ function import {
   wp option update home "$WP_URL"
 }
 
-function deploy {
-  [ "$VERBOSE" ] && echo Deploying
-
-  ssh-agent bash -c " ; \
-    echo ssh-add $SITE/key ; \
-    git clone git@bitbucket.org:nickbreen/kidslink-plugin.git wp-content/plugins/kidslink ; \
-    git clone git@bitbucket.org:nickbreen/kidslink-theme.git; wp-content/themes/kidslink ;\
-  "
-}
-
-
 # TODO remove
 SITE=$(dirname $(readlink -nf "$0"))
 export GIT_SSH=$SITE/ssh.sh
 
-while getopts iumdv OPT; do
+while getopts iumv OPT; do
   case $OPT in
     i) ACTION='install';;
     u) ACTION='upgrade';;
     m) ACTION='import';;
-    d) ACTION='deploy';;
     v) VERBOSE=true;;
     *) exit 1
   esac
