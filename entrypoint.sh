@@ -1,7 +1,20 @@
 #!/bin/bash
 
+function log {
+  [ ! -t 0 ] && LOG=$(</dev/stdin)
+  if [ "$VERBOSE" ]
+  then
+    [ ${#@} -gt 0 ] && echo "$@"
+    [ ${#LOG} -gt 0 ] && echo "$LOG"
+  fi
+}
+
+function bb {
+  php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url "$1" > $2
+}
+
 function install {
-  [ "$VERBOSE" ] && echo Installing
+  log Installing
 
   # Install core [configuration]
 
@@ -25,12 +38,12 @@ function install {
 
   for URL in $BB_THEMES; do
     ZIP=wp-content/themes/$(basename "$URL")
-    php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url "$URL" > $ZIP
+    bb $URL $ZIP
     wp theme install $ZIP
     # TODO rename the top level directory from the zip
   done
 
-  [ "$VERBOSE" ] && wp theme list
+  wp theme list | log
 
   # Install plugins
 
@@ -41,16 +54,16 @@ function install {
 
   for URL in $BB_PLUGINS; do
     ZIP=wp-content/plugins/$(basename "$URL")
-    php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url "$URL" > $ZIP
+    bb $URL $ZIP
     wp plugin install $ZIP
     # TODO rename the top level directory from the zip
   done
 
-  [ "$VERBOSE" ] && wp plugin list
+  wp plugin list | log Plugins
 }
 
 function upgrade {
-  [ "$VERBOSE" ] && echo Upgrading
+  log Upgrading
   wp core update \
       && wp core update-db \
       && wp theme update --all \
@@ -60,32 +73,25 @@ function upgrade {
 }
 
 function import {
-  [ "$VERBOSE" ] && echo Importing
-  [ "$VERBOSE" ] && echo Found WXR files to import
-  [ "$VERBOSE" ] && ls -1 $SITE/wxr/*.xml
+  log Importing
 
-  wp plugin install wordpress-importer --activate
+  wp plugin is-installed wordpress-importer || wp plugin wp plugin install wordpress-importer --activate
+  [ $(wp plugin get wordpress-importer --field=status) -eq "active" ] || wp plugin activate wordpress-importer
 
-  wp import $SITE/wxr/*.xml --authors=create --skip=image_resize
+  wp import $WP_IMPORT --authors=create --skip=image_resize
 
   wp option update siteurl "$WP_URL"
   wp option update home "$WP_URL"
 }
 
-# TODO remove
+# TODO remove $SITE
 SITE=$(dirname $(readlink -nf "$0"))
-export GIT_SSH=$SITE/ssh.sh
 
-while getopts iumv OPT; do
+while getopts v OPT; do
   case $OPT in
-    i) ACTION='install';;
-    u) ACTION='upgrade';;
-    m) ACTION='import';;
     v) VERBOSE=true;;
     *) exit 1
   esac
 done
-
-$ACTION
 
 "${@:$OPTIND}"
