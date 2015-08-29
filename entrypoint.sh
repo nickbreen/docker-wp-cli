@@ -9,22 +9,6 @@ function log {
   fi
 }
 
-# Fetches a BitBucket URL using 2-legged OAuth  credentials.
-#
-#
-function bb {
-  php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url "$1" > $2
-}
-
-function install_core {
-  wp core is-installed || wp core install \
-      --url="$WP_URL" \
-      --title="$WP_TITLE" \
-      --admin_user="$WP_ADMIN_USER" \
-      --admin_password="$WP_ADMIN_PASSWORD" \
-      --admin_email="$WP_ADMIN_EMAIL"
-}
-
 # Installs themes or plugins from a list on STDIN.
 #
 # STDIN format each line: slug [URL]
@@ -41,44 +25,67 @@ function install_core {
 #   EOT
 #
 function install_a {
+  local A=$1
   while read SLUG URL;
   do
     if [ "$SLUG" -a "$URL" ]
     then
-      wp $1 is-installed $SLUG || wp $1 install "$URL"
+      wp $A is-installed $SLUG || wp $A install "$URL"
     elif [ "$SLUG" ]
     then
-      wp $1 is-installed $SLUG || wp $1 install $SLUG
+      wp $A is-installed $SLUG || wp $A install $SLUG
     fi
   done
 }
 
+# Installs themes or plugins specified on STDIN hosted at BitBucket.
+# Usage:
+#   install_b plugin|theme <<< "SLUG REPO TAG"
+#
+# SLUG is WP's name for the theme|plugin
+# REPO is the BitBucket account/repository value.
+# TAG is any tag|branch|commitish
+#
+# Requires $BB_KEY and $BB_SECRET environment variables.
+#
+function install_b {
+  local A=$1
+  local FMT_URL='https://bitbucket.org/%s/get/%s.zip'
+  local FMT_ZIP='wp-content/%ss/%s.%s.%s.zip'
+  while read SLUG REPO TAG;
+  do
+    if [ "$SLUG" ]
+    then
+      # TODO query the repo for the tag (exists, and maybe the download URL)
+      # TODO add support for the 'latest' tag bu omission of the tag value
+      URL=$(printf $FMT_URL $REPO $TAG)
+      # TODO use a mktemp file for the ZIP and clean up afterwards
+      ZIP=$(printf $FMT_ZIP $A ${REPO%/*} ${REPO#*/} $TAG)
+      php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url $URL > $ZIP
+      # TODO futz with the ZIP to rename the root directory to the $SLUG
+      wp $A is-installed $SLUG || wp $A install $ZIP
+    fi
+  done
+}
+
+function install_core {
+  wp core is-installed || wp core install \
+      --url="$WP_URL" \
+      --title="$WP_TITLE" \
+      --admin_user="$WP_ADMIN_USER" \
+      --admin_password="$WP_ADMIN_PASSWORD" \
+      --admin_email="$WP_ADMIN_EMAIL"
+}
+
 function install_themes {
   install_a theme <<< "$WP_THEMES"
-
-  for URL in $BB_THEMES; do
-    ZIP=wp-content/themes/$(basename "$URL")
-    bb $URL $ZIP
-    wp theme install $ZIP
-    # TODO rename the top level directory from the zip
-  done
-
+  install_b theme <<< "$BB_THEMES"
   wp theme list
 }
 
 function install_plugins {
-  # for P in $WP_PLUGINS; do
-  #   wp plugin is-installed $P || wp plugin install $P
-  # done
   install_a plugin <<< "$WP_PLUGINS"
-
-  for URL in $BB_PLUGINS; do
-    ZIP=wp-content/plugins/$(basename "$URL")
-    bb $URL $ZIP
-    wp plugin install $ZIP
-    # TODO rename the top level directory from the zip
-  done
-
+  install_b plugin <<< "$BB_PLUGINS"
   wp plugin list
 }
 
@@ -111,14 +118,12 @@ function import {
   wp import $WP_IMPORT --authors=create --skip=image_resize --skip=attachments --quiet
 }
 
-# TODO remove $SITE
-SITE=$(dirname $(readlink -nf "$0"))
-
+# Parse options
 while getopts v OPT; do
   case $OPT in
     v) VERBOSE=true;;
     *) exit 1
   esac
 done
-
+# Execute default function or command.
 "${@:$OPTIND}"
