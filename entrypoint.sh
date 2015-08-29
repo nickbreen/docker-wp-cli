@@ -52,12 +52,14 @@ function install_b {
   local A=$1
   local FMT_URL='https://bitbucket.org/%s/get/%s.zip'
   local FMT_ZIP='wp-content/%ss/%s.%s.%s.zip'
+  local FMT_TAG='https://bitbucket.org/api/2.0/repositories/%s/refs/tags/%s'
   while read SLUG REPO TAG;
   do
     if [ "$SLUG" ]
     then
-      # TODO query the repo for the tag (exists, and maybe the download URL)
-      # TODO add support for the 'latest' tag bu omission of the tag value
+      # query the repo for the tag (exists, and maybe the download URL)
+      curl -sf $(printf $FMT_TAG $REPO $TAG) || continue
+      # TODO add support for the 'latest' tag by omission of the tag value
       URL=$(printf $FMT_URL $REPO $TAG)
       # TODO use a mktemp file for the ZIP and clean up afterwards
       ZIP=$(printf $FMT_ZIP $A ${REPO%/*} ${REPO#*/} $TAG)
@@ -114,7 +116,7 @@ function import {
 
   wp option update siteurl "$WP_URL"
   wp option update home "$WP_URL"
-  echo Importing, this may take a very long time.
+  echo 'Importing, this may take a *very* long time.'
   wp import $WP_IMPORT --authors=create --skip=image_resize --skip=attachments --quiet
 }
 

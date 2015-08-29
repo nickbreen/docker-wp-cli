@@ -18,15 +18,14 @@ to bind the volumes from a ```wordpress:fpm``` or similar process.
         WP_ADMIN_EMAIL: user@some.domain
         WP_IMPORT: /var/www/wxr
         WP_THEMES: |
+          theme-slug
           theme-slug http://theme.domain/theme-url.zip
         WP_PLUGINS: |
-          hello-dolly
-          jetpack
-          wordpress-importer
+          plugin-slug
           plugin-slug https://plugin.domain/plugin-url.zip
         BB_KEY: "BitBucket API OAuth Key"
         BB_SECRET: "BitBucket API OAuth Secret"
         BB_PLUGINS: |
-          https://bitbucket.org/nickbreen/kidslink-plugin/get/v1.5.7.zip
+          slug account/repo tag
         BB_THEMES: |
-          https://bitbucket.org/nickbreen/kidslink-theme/get/v1.5.4.zip
+          slug account/repo tag
