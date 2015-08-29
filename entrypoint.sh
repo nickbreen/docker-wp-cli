@@ -43,14 +43,13 @@ function install {
     # TODO rename the top level directory from the zip
   done
 
-  wp theme list | log
+  wp theme list
 
   # Install plugins
 
   for P in $WP_PLUGINS; do
     wp plugin is-installed $P || wp plugin install $P
   done
-  wp plugin activate --all
 
   for URL in $BB_PLUGINS; do
     ZIP=wp-content/plugins/$(basename "$URL")
@@ -59,7 +58,8 @@ function install {
     # TODO rename the top level directory from the zip
   done
 
-  wp plugin list | log Plugins
+  wp plugin activate --all
+  wp plugin list
 }
 
 function upgrade {
@@ -75,10 +75,13 @@ function upgrade {
 function import {
   log Importing
 
-  wp plugin is-installed wordpress-importer || wp plugin wp plugin install wordpress-importer --activate
-  [ $(wp plugin get wordpress-importer --field=status) -eq "active" ] || wp plugin activate wordpress-importer
+  if ! wp plugin is-installed wordpress-importer
+  then
+    log "Import requires the wordpress-importer plugin, please spcifiy it in \$WP_PLUGINS"
+    exit 1
+  fi
 
-  wp import $WP_IMPORT --authors=create --skip=image_resize
+  wp import $WP_IMPORT --authors=create --skip=image_resize --quiet
 
   wp option update siteurl "$WP_URL"
   wp option update home "$WP_URL"
