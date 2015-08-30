@@ -50,24 +50,37 @@ function install_a {
 #
 function install_b {
   local A=$1
-  local FMT_URL='https://bitbucket.org/%s/get/%s.zip'
-  local FMT_ZIP='wp-content/%ss/%s.%s.%s.zip'
-  local FMT_TAG='https://bitbucket.org/api/2.0/repositories/%s/refs/tags/%s'
   while read SLUG REPO TAG;
   do
     if [ "$SLUG" ]
     then
-      # query the repo for the tag (exists, and maybe the download URL)
-      curl -sf $(printf $FMT_TAG $REPO $TAG) || continue
+      # query the repo for the tag to check it exists
+      local TAG_URL="https://bitbucket.org/api/2.0/repositories/${REPO}/refs/tags/${TAG}"
+      local TAG_JSON=$(php /oauth.php -v --key "$BB_KEY" --secret "$BB_SECRET" --url "$TAG_URL")
+      log Tag $REPO @ $TAG "[$?]" <<< "$TAG_JSON"
+      if [ $? -gt 0 ]
+      then
+        log Tag does not exist for: $REPO @ $TAG "[$?]" <<< "$TAG_JSON"
+        continue
+      fi
       # TODO add support for the 'latest' tag by omission of the tag value
-      URL=$(printf $FMT_URL $REPO $TAG)
+      local URL="https://bitbucket.org/${REPO}/get/${TAG}.zip"
       # TODO use a mktemp file for the ZIP and clean up afterwards
-      ZIP=$(printf $FMT_ZIP $A ${REPO%/*} ${REPO#*/} $TAG)
+      local ZIP="wp-content/${A}s/${REPO/\//.}.${TAG}.zip"
       php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url $URL > $ZIP
       # TODO futz with the ZIP to rename the root directory to the $SLUG
-      wp $A is-installed $SLUG || wp $A install $ZIP
+      # Maybe not, fix this properly by making the plugin|theme self-updating
+      # So rather than this:
+      # wp $A is-installed $SLUG || wp $A install $ZIP
+      # Just force install it always
+      wp $A install $ZIP --force
     fi
   done
+}
+
+# Dirty function to test the oauth.php script
+function bb {
+  php /oauth.php -v --key "$BB_KEY" --secret "$BB_SECRET" --url "$1"
 }
 
 function install_core {

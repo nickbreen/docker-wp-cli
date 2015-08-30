@@ -1,6 +1,6 @@
 FROM wordpress:fpm
 
-# WP-CLI requires less when showing help, ignores $PAGER! 
+# WP-CLI requires less when showing help, ignores $PAGER!
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -qy less
 
 # Install WP-CLI http://wp-cli.org
