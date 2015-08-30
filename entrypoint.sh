@@ -50,37 +50,27 @@ function install_a {
 #
 function install_b {
   local A=$1
-  while read SLUG REPO TAG;
+  while read REPO TAG;
   do
-    if [ "$SLUG" ]
+    if [ "$REPO" ]
     then
-      # query the repo for the tag to check it exists
-      local TAG_URL="https://bitbucket.org/api/2.0/repositories/${REPO}/refs/tags/${TAG}"
-      local TAG_JSON=$(php /oauth.php -v --key "$BB_KEY" --secret "$BB_SECRET" --url "$TAG_URL")
-      log Tag $REPO @ $TAG "[$?]" <<< "$TAG_JSON"
-      if [ $? -gt 0 ]
-      then
-        log Tag does not exist for: $REPO @ $TAG "[$?]" <<< "$TAG_JSON"
-        continue
-      fi
       # TODO add support for the 'latest' tag by omission of the tag value
       local URL="https://bitbucket.org/${REPO}/get/${TAG}.zip"
       # TODO use a mktemp file for the ZIP and clean up afterwards
       local ZIP="wp-content/${A}s/${REPO/\//.}.${TAG}.zip"
-      php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url $URL > $ZIP
-      # TODO futz with the ZIP to rename the root directory to the $SLUG
-      # Maybe not, fix this properly by making the plugin|theme self-updating
-      # So rather than this:
-      # wp $A is-installed $SLUG || wp $A install $ZIP
-      # Just force install it always
-      wp $A install $ZIP --force
+      if bb $URL > $ZIP
+      then
+        wp $A install $ZIP --force
+      else
+        log Tag does not exist for: $REPO @ $TAG
+      fi
     fi
   done
 }
 
-# Dirty function to test the oauth.php script
+# Dirty function to call the oauth.php script
 function bb {
-  php /oauth.php -v --key "$BB_KEY" --secret "$BB_SECRET" --url "$1"
+  php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url "$1"
 }
 
 function install_core {
