@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function log {
-  [ "$VERBOSE" -a ${#@} -gt 0 ] && echo "$@"
+  [ "$VERBOSE" ] && echo "$@"
 }
 
 # Installs themes or plugins from a list on STDIN.
@@ -35,9 +35,8 @@ function install_a {
 
 # Installs themes or plugins specified on STDIN hosted at BitBucket.
 # Usage:
-#   install_b plugin|theme <<< "SLUG REPO TAG"
+#   install_b plugin|theme <<< "REPO TAG"
 #
-# SLUG is WP's name for the theme|plugin
 # REPO is the BitBucket account/repository value.
 # TAG is any tag|branch|commitish
 #
@@ -53,12 +52,7 @@ function install_b {
       local URL="https://bitbucket.org/${REPO}/get/${TAG}.zip"
       # TODO use a mktemp file for the ZIP and clean up afterwards
       local ZIP="wp-content/${A}s/${REPO/\//.}.${TAG}.zip"
-      if bb $URL > $ZIP
-      then
-        wp $A install $ZIP --force
-      else
-        log Tag does not exist for: $REPO @ $TAG
-      fi
+      bb $URL > $ZIP || log Tag does not exist for: $REPO @ $TAG && wp $A install $ZIP --force
     fi
   done
 }
