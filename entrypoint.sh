@@ -1,12 +1,7 @@
 #!/bin/bash
 
 function log {
-  [ -t 0 ] || LOG=$(</dev/stdin)
-  if [ "$VERBOSE" ]
-  then
-    [ ${#@} -gt 0 ] && echo "$@"
-    [ ${#LOG} -gt 0 ] && echo "$LOG"
-  fi
+  [ "$VERBOSE" -a ${#@} -gt 0 ] && echo "$@"
 }
 
 # Installs themes or plugins from a list on STDIN.
@@ -120,7 +115,7 @@ function import {
   wp option update siteurl "$WP_URL"
   wp option update home "$WP_URL"
   echo 'Importing, this may take a *very* long time.'
-  wp import $WP_IMPORT --authors=create --skip=image_resize --skip=attachments --quiet
+  wp import $WP_IMPORT --authors=create --skip=image_resize --skip=attachment --quiet
 }
 
 # Parse options
