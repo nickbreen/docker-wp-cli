@@ -106,10 +106,10 @@ function import {
     exit 1
   fi
 
-  wp option update siteurl "$WP_URL"
-  wp option update home "$WP_URL"
+  # wp option update siteurl "$WP_URL"
+  # wp option update home "$WP_URL"
   echo 'Importing, this may take a *very* long time.'
-  wp import $WP_IMPORT --authors=create --skip=image_resize --skip=attachment --quiet
+  wp import $WP_IMPORT --authors=create --skip=image_resize --quiet "$@"
 }
 
 # Parse options
