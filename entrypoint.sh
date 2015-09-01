@@ -112,11 +112,21 @@ function import {
   wp import $WP_IMPORT --authors=create --skip=image_resize --quiet "$@"
 }
 
+function usage {
+  echo <<-EOT
+    Usage: entrypoing.sh [-v] [command]
+    
+    Options:
+    -v\t\tVerbose logging.
+
+EOT
+}
+
 # Parse options
 while getopts v OPT; do
   case $OPT in
     v) VERBOSE=true;;
-    *) exit 1
+    *) usage; exit 1
   esac
 done
 # Execute default function or command.
