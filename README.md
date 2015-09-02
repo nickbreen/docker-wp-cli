@@ -62,6 +62,7 @@ The images' entrypoint provides a few convenience functions:
 - ```import```
   Imports all WXR files found in the WP_IMPORT directories (can also be files).
 
+E.g.
 
     docker-compose run --rm -u www-data wp_cli install
 
