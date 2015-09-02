@@ -88,8 +88,10 @@ Note: ```docker-compose``` 1.4.0 doesn't run with --volumes-from, so if you have
       -e BB_KEY="BitBucket API OAuth Key" \
       -e BB_SECRET="BitBucket API OAuth Secret" \
       -e BB_PLUGINS='
-        slug account/repo tag' \
+        account/repo tag' \
       -e BB_THEMES='
-        slug account/repo tag' \
-      -d nickbreen/wp-cli
+        account/repo tag' \
+      --rm -it \
+      -u www-data \
+      nickbreen/wp-cli install
 
