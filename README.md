@@ -69,7 +69,7 @@ E.g.
 
 Note: ```docker-compose``` 1.4.0 doesn't run with --volumes-from, so if you have a data container you must use docker proper.
 
-    docker run 
+    docker run \
       --name wp-cli \
       --link db:mysql \
       --volumes-from wp-data \
