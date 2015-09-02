@@ -13,6 +13,7 @@ Initial WordPress installation:
       -e WP_ADMIN_EMAIL=user@some.domain \
       -d nickbreen/wp_cli
 
+
     wp core install \
         --url="$WP_URL" \
         --title="$WP_TITLE" \
@@ -22,46 +23,48 @@ Initial WordPress installation:
 
 Or use ```docker-compose```.
 
-  wp_cli:
-    image: nickbreen/wp-cli
-    links:
-      - db:mysql
-    volumes:
-      - ./wxr:/var/www/wxr:ro
-    volumes_from:
-      - wp
-    environment:
-      WP_URL: http://some.domain/some-url
-      WP_TITLE: Blog Title
-      WP_ADMIN_USER: user
-      WP_ADMIN_PASSWORD: password
-      WP_ADMIN_EMAIL: user@some.domain
-      WP_IMPORT: /var/www/wxr
-      WP_THEMES: |
-        theme-slug
-        theme-slug http://theme.domain/theme-url.zip
-      WP_PLUGINS: |
-        plugin-slug
-        plugin-slug https://plugin.domain/plugin-url.zip
-      BB_KEY: "BitBucket API OAuth Key"
-      BB_SECRET: "BitBucket API OAuth Secret"
-      BB_PLUGINS: |
-        slug account/repo tag
-      BB_THEMES: |
-        slug account/repo tag
+    wp_cli:
+        image: nickbreen/wp-cli
+        links:
+          - db:mysql
+        volumes:
+          - ./wxr:/var/www/wxr:ro
+        volumes_from:
+          - wp
+        environment:
+          WP_URL: http://some.domain/some-url
+          WP_TITLE: Blog Title
+          WP_ADMIN_USER: user
+          WP_ADMIN_PASSWORD: password
+          WP_ADMIN_EMAIL: user@some.domain
+          WP_IMPORT: /var/www/wxr
+          WP_THEMES: |
+            theme-slug
+            theme-slug http://theme.domain/theme-url.zip
+          WP_PLUGINS: |
+            plugin-slug
+            plugin-slug https://plugin.domain/plugin-url.zip
+          BB_KEY: "BitBucket API OAuth Key"
+          BB_SECRET: "BitBucket API OAuth Secret"
+          BB_PLUGINS: |
+            slug account/repo tag
+          BB_THEMES: |
+            slug account/repo tag
 
 
 The images' entrypoint provides a few convenience functions:
 
-- install
-  Configures WP with URL, title, admin details as specified by WP_THEMES, WP_PLUGINS, BB_THEMES, BB_PLUGINS.
-  BB_* installs from BitBucket.org, requires an API key and secret.
-- upgrade
+- ```install```
+  Configures WP with URL, title, admin details as specified by the ```WP_*``` and ```BB_*``` environment variables.
+  ```BB_*``` installs from BitBucket.org, requires an API key and secret.
+- ```upgrade```
   Upgrades WP, themes, and plugins.
-- import
+- ```import```
   Imports all WXR files found in the WP_IMPORT directories (can also be files).
 
+
     docker-compose run --rm -u www-data wp_cli install
+
 
 Note: ```docker-compose``` 1.4.0 doesn't run with --volumes-from, so if you have a data container you must use docker proper.
 
