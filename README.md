@@ -91,5 +91,5 @@ Note: ```docker-compose``` 1.4.0 doesn't run with --volumes-from, so if you have
         slug account/repo tag' \
       -e BB_THEMES='
         slug account/repo tag' \
-      -d nickbreen/wp_cli
+      -d nickbreen/wp-cli
 
