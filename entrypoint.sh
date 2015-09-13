@@ -1,7 +1,18 @@
 #!/bin/bash
 
+WP=$(which wp)
+DEFAULT_BASE_DIR="/var/www/html"
+DEFAULT_CONTENT_DIR=content
+DEFAULT_WP_DIR=wordpress
+INSTALL_DIR=$BASE_DIR/${WP_DIR:-$DEFAULT_WP_DIR}
+
 function log {
   [ "$VERBOSE" ] && echo "$@"
+}
+
+# Dirty wrapper for wp-cli
+function wp {
+  $WP --allow-root --path=$INSTALL_DIR "$@"
 }
 
 # Installs themes or plugins from a list on STDIN.
@@ -63,6 +74,29 @@ function bb {
 }
 
 function install_core {
+  mkdir -p $INSTALL_DIR
+  # Always download the lastest WP
+  wp core download --locale="${WP_LOCALE:-en_NZ}" --force
+  # Configure database 
+  # Fallback to the linked mysql container if no explicit DB host is specified
+  # Assume that a DB has already been created
+  # Skip the DB check as there's unlikely to be a mysql client available
+  wp core config \
+      --skip-check \
+      --dbname="${WORDPRESS_DB_NAME:-wordpress}" \
+      --dbuser="$WORDPRESS_DB_USER" \
+      --dbpass="$WORDPRESS_DB_PASSWORD" \
+      --dbhost="${WORDPRESS_DB_HOST:-$MYSQL_PORT_3306_TCP_ADDR:$MYSQL_PORT_3306_TCP_PORT}" \
+      --dbprefix="${WORDPRESS_DB_PREFIX:-wp_}" \
+      --extra-php <<PHP
+define('WP_HOME', '${WP_URL}' );
+define('WP_CONTENT_DIR', dirname(__FILE__) . '/${WP_CONTENT_DIR:-$DEFAULT_CONTENT_DIR}');
+define('WP_CONTENT_URL', WP_HOME . '/${WP_CONTENT_DIR:-$DEFAULT_CONTENT_DIR}');
+PHP
+  mv $INSTALL_DIR/wp-config.php $BASE_DIR
+  mv $INSTALL_DIR/wp-content $BASE_DIR/${WP_CONTENT_DIR:-$DEFAULT_CONTENT_DIR}
+
+  # Configure the Blog
   wp core is-installed || wp core install \
       --url="$WP_URL" \
       --title="$WP_TITLE" \
@@ -102,7 +136,7 @@ function upgrade {
 function import {
   if ! wp plugin is-installed wordpress-importer
   then
-    log "Import requires the wordpress-importer plugin, please spcifiy it in \$WP_PLUGINS"
+    log "Import requires the wordpress-importer plugin, please specifiy it in \$WP_PLUGINS"
     exit 1
   fi
 
@@ -129,5 +163,10 @@ while getopts v OPT; do
     *) usage; exit 1
   esac
 done
+
+set -e
+# Ensure proper ownership of the docroot
+chown -cR www-data:www-data "${BASE_DIR:-$DEFAULT_BASE_DIR}"
+
 # Execute default function or command.
 "${@:$OPTIND}"

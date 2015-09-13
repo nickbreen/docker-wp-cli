@@ -1,7 +1,11 @@
 FROM wordpress:fpm
 
+MAINTAINER Nick Breen <nick@foobar.net.nz>
+
 # WP-CLI requires less when showing help, ignores $PAGER!
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -qy less
+RUN DEBIAN_FRONTEND=noninteractive apt-get update &&\
+	TERM=dumb apt-get install -qy less &&\
+	apt-get clean
 
 # Install WP-CLI http://wp-cli.org
 # Install Bash completion for WP-CLI
@@ -22,4 +26,5 @@ COPY entrypoint.sh oauth.php /
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/bin/bash"]
+CMD ["php-fpm"] 
+
