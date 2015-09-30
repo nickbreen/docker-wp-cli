@@ -140,7 +140,7 @@ function options {
     then
       wp option set "$OPTION" "$JSON" --format=json
     fi
-  done
+  done <<< "$WP_OPTIONS"
 }
 
 function import {
@@ -165,11 +165,12 @@ EOT
 }
 
 # Parse options
-while getopts vim OPT; do
+while getopts vimo OPT; do
   case $OPT in
     v) VERBOSE=true;;
     i) install;;
     m) import;;
+    o) options;;
     *) usage; exit 1;;
   esac
 done
