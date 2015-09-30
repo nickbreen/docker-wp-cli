@@ -50,6 +50,15 @@ function install_a {
 #
 # Requires $BB_KEY and $BB_SECRET environment variables.
 #
+# Note that a BitBucket ZIP contains a directory named for the project
+# and the commit. E.g. some_theme_12345678
+#
+# To update or replace a theme or plugin:
+# 1. Install the new theme/plugin. E.g. some_theme_90abcdef
+# 2. Find the old directory with the matching prefix. E.g. some_theme_12345678
+# 3. Deactivate the old theme/plugin. E.g. wp theme deactivate some_theme_12345678
+# 4. Activate the new theme/plugin. E.g. wp theme activate some_theme_90abcdef
+#
 function install_b {
   local A=$1
   while read REPO TAG;
@@ -122,9 +131,21 @@ function upgrade {
   # TODO fetch [a specific] tagged download from BB
 }
 
+# Sets options as specified in STDIN.
+# Expects format of OPTION_NAME JSON_STRING
+function options {
+  while read OPTION JSON;
+  do
+    if [ "$OPTION" -a "$JSON" ]
+    then
+      wp option set "$OPTION" "$JSON" --format=json
+    fi
+  done
+}
+
 function import {
   wp plugin is-installed wordpress-importer || install_a plugin <<< "wordpress-importer"
-
+  wp plugin activate wordpress-importer
   # wp option update siteurl "$WP_URL"
   # wp option update home "$WP_URL"
   echo 'Importing, this may take a *very* long time.'
