@@ -31,7 +31,7 @@ RUN PECL=/usr/local/bin/docker-php-pecl-install \
     && docker-php-pecl-install oauth \
     && docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr \
     && docker-php-ext-install gd \
-    && docker-php-ext-install mysqli \
+    && docker-php-ext-install mysqli
 
 VOLUME /var/www/html
 
