@@ -5,7 +5,7 @@ MAINTAINER Nick Breen <nick@foobar.net.nz>
 
 # WP-CLI requires less when showing help, ignores $PAGER!
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-	&& apt-get install -qy \
+    && apt-get install -qy \
         less \
         libpng12-dev \
         libjpeg-dev \
