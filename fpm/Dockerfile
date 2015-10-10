@@ -1,13 +1,10 @@
-FROM php:5.6-apache
-# See https://github.com/docker-library/wordpress
+FROM php:5.6-fpm
 
 MAINTAINER Nick Breen <nick@foobar.net.nz>
 
-RUN a2enmod rewrite
-
 # WP-CLI requires less when showing help, ignores $PAGER!
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-	&& apt-get install -qy \
+    && apt-get install -qy \
         less \
         libpng12-dev \
         libjpeg-dev \
@@ -35,9 +32,5 @@ RUN PECL=/usr/local/bin/docker-php-pecl-install \
 
 VOLUME /var/www/html
 
-COPY entrypoint.sh oauth.php /
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["apache2-foreground"] 
+CMD ["php-fpm"] 
 
