@@ -35,27 +35,26 @@ RUN PECL=/usr/local/bin/docker-php-pecl-install \
 
 COPY entrypoint.sh oauth.php /
 
-ENV WP_LOCALE "en_NZ"
-ENV WP_DB_HOST "**automatically uses \$MYSQL_PORT_3306_TCP_ADDR**"
-ENV WP_DB_PORT "**automatically uses \$MYSQL_PORT_3306_TCP_PORT**"
-ENV WP_DB_NAME "**automatically uses \$MYSQL_DATABASE**"
-ENV WP_DB_USER "**automatically uses \$MYSQL_USER**"
-ENV WP_DB_PASSWORD "**automatically uses \$MYSQL_PASSWORD**"
-ENV WP_DB_PREFIX "wp_"
+ENV WP_LOCALE "en_NZ" \
+    WP_DB_HOST "**automatically uses \$MYSQL_PORT_3306_TCP_ADDR**" \
+    WP_DB_PORT "**automatically uses \$MYSQL_PORT_3306_TCP_PORT**" \
+    WP_DB_NAME "**automatically uses \$MYSQL_DATABASE**" \
+    WP_DB_USER "**automatically uses \$MYSQL_USER**" \
+    WP_DB_PASSWORD "**automatically uses \$MYSQL_PASSWORD**" \
+    WP_DB_PREFIX "wp_" \
+    WP_URL "http://example.com" \
+    WP_TITLE "Example Blog" \
+    WP_ADMIN_USER "admin" \
+    WP_ADMIN_PASSWORD "**change me**" \
+    WP_ADMIN_EMAIL "admin@example.com" \
+    WP_THEMES "" \
+    BB_THEMES "" \
+    WP_PLUGINS "" \
+    BB_PLUGINS "" \
+    WP_OPTIONS ""
 
-ENV WP_URL "http://example.com"
-ENV WP_TITLE "Example Blog"
-ENV WP_ADMIN_USER "admin"
-ENV WP_ADMIN_PASSWORD "**change me**"
-ENV WP_ADMIN_EMAIL "admin@example.com"
+#    WP_IMPORT "" \
 
-ENV WP_THEMES ""
-ENV BB_THEMES ""
-ENV WP_PLUGINS ""
-ENV BB_PLUGINS ""
-
-ENV WP_IMPORT ""
-ENV WP_OPTIONS ""
 
 # Apparently, have to reset the entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]
