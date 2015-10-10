@@ -6,12 +6,12 @@ wp:
     - db:mysql
   environment:
     WP_URL: http://localhost
+    WP_DB_NAME: wp
+    WP_DB_USER: wp
+    WP_DB_PASSWORD: wp
 
 db:
   image: mariadb
   command: --innodb_file_per_table
   environment:
     MYSQL_ROOT_PASSWORD: hlkajdsyhdof734563245yrliuawerhjfbeiurtyq3478534
-    MYSQL_USER: wp
-    MYSQL_PASSWORD: kasjdhdf93746523q94gh5rqlkjkberfakdjsndfjhgpruty
-    MYSQL_DATABASE: wordpress
