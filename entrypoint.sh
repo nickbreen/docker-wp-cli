@@ -84,11 +84,11 @@ function bb {
 }
 
 function install_core {
-	# Always download the lastest WP
-	wp core download --locale="${WP_LOCALE}" --force
-
 	# Setup the database
 	php /db.php
+
+	# Always download the lastest WP
+	wp core download --locale="${WP_LOCALE}" --force
 
 	# Configure the database 
 	# Fallback to the explicit DB config if no mysql container is linked

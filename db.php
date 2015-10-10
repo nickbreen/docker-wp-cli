@@ -1,12 +1,13 @@
 <?php
-$mysql = new mysqli($_ENV['WP_DB_HOST'], 'root', $_ENV['MYSQL_ENV_MYSQL_ROOT_PASSWORD'], '', $_ENV['WP_DB_PORT']);
-$mysql->multi_query(<<<EOSQL
+$mysqli = new mysqli($_ENV['WP_DB_HOST'], 'root', $_ENV['MYSQL_ENV_MYSQL_ROOT_PASSWORD'], '', $_ENV['WP_DB_PORT']);
+$mysqli->multi_query(<<<EOSQL
 CREATE DATABASE IF NOT EXISTS ${_ENV['WP_DB_NAME']};
 GRANT ALL PRIVILEGES ON ${_ENV['WP_DB_NAME']}.* TO "${_ENV['WP_DB_USER']}" IDENTIFIED BY "${_ENV['WP_DB_PASSWORD']}";
 FLUSH PRIVILEGES;
-EOSQL) 
+EOSQL
+);
 
-var_dump($mysql->errno, $mysql->error);
+var_dump($mysqli->errno, $mysqli->error);
 
 do {
     if ($res = $mysqli->store_result()) {
