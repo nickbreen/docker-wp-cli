@@ -150,19 +150,12 @@ function import {
 }
 
 set -e
-#if [[ "$1" == "apache2*" ]]
-#then
-	#env | egrep '^(WP|BB|MYSQL)_' | sort
-	env | sort
-	# Ensure proper ownership of the workdir.
-	install_core
-	upgrade
-	install_themes
-	install_plugins
-	wp plugin activate --all
-	options
-	chown -R www-data:www-data . 
-#fi 
+env | sort
+install
+upgrade
+options
+# Ensure proper ownership of the workdir.
+chown -R www-data:www-data . 
 
 # Execute default function or command.
 exec "${@}"
