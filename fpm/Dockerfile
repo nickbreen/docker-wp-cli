@@ -2,6 +2,8 @@ FROM php:5.6-fpm
 
 MAINTAINER Nick Breen <nick@foobar.net.nz>
 
+VOLUME /var/www/html
+
 # WP-CLI requires less when showing help, ignores $PAGER!
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get install -qy \
@@ -29,8 +31,4 @@ RUN PECL=/usr/local/bin/docker-php-pecl-install \
     && docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr \
     && docker-php-ext-install gd \
     && docker-php-ext-install mysqli
-
-VOLUME /var/www/html
-
-CMD ["php-fpm"] 
 

@@ -33,7 +33,22 @@ RUN PECL=/usr/local/bin/docker-php-pecl-install \
     && docker-php-ext-install gd \
     && docker-php-ext-install mysqli
 
-VOLUME /var/www/html
+ENV WP_LOCALE en_NZ
+ENV WP_DB_NAME wordpress
+ENV WP_DB_USER wp
+ENV WP_DB_PASSWORD "**change me**"
+ENV WP_DB_PREFIX wp_
 
-CMD ["apache2-foreground"] 
+ENV WP_URL "http://example.com"
+ENV WP_TITLE "Example Blog"
+ENV WP_ADMIN_USER "admin"
+ENV WP_ADMIN_PASSWORD "**change me**"
+ENV WP_ADMIN_EMAIL "admin@example.com"
 
+ENV WP_THEMES ""
+ENV BB_THEMES ""
+ENV WP_PLUGINS ""
+ENV BB_PLUGINS ""
+
+ENV WP_IMPORT ""
+ENV WP_OPTIONS ""
