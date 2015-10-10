@@ -2,6 +2,13 @@
 
 WP=$(which wp)
 
+# Juggle ENV VARS
+WP_DB_NAME=${MYSQL_ENV_MYSQL_DATABASE:-$WP_DB_NAME}
+WP_DB_USER=${MYSQL_ENV_MYSQL_USER:-$WP_DB_USER}
+WP_DB_PASSWORD=${MYSQL_ENV_MYSQL_PASSWORD:-$WP_DB_PASSWORD}
+WP_DB_HOST=${MYSQL_PORT_3306_TCP_ADDR:-WP_DB_HOST}
+WP_DB_PORT=${MYSQL_PORT_3306_TCP_PORT:-$WP_DB_PORT}
+
 # Dirty wrapper for wp-cli
 function wp {
 	$WP --allow-root "$@"
@@ -80,16 +87,19 @@ function install_core {
 	# Always download the lastest WP
 	wp core download --locale="${WP_LOCALE}" --force
 
-	# Configure database 
+	# Setup the database
+	php /db.php
+
+	# Configure the database 
 	# Fallback to the explicit DB config if no mysql container is linked
 	# Assume that a DB has already been created
 	# Skip the DB check as there isn't a mysql client available
 	rm -f wp-config.php && wp core config \
 			--skip-check \
-			--dbname="${MYSQL_ENV_MYSQL_DATABASE:-$WP_DB_NAME}" \
-			--dbuser="${MYSQL_ENV_MYSQL_USER:-$WP_DB_USER}" \
-			--dbpass="${MYSQL_ENV_MYSQL_PASSWORD:-$WP_DB_PASSWORD}" \
-			--dbhost="${MYSQL_PORT_3306_TCP_ADDR:-WP_DB_HOST}:${MYSQL_PORT_3306_TCP_PORT:-$WP_DB_PORT}" \
+			--dbname="${WP_DB_NAME}" \
+			--dbuser="${WP_DB_USER}" \
+			--dbpass="${WP_DB_PASSWORD}" \
+			--dbhost="${WP_DB_HOST}:${WP_DB_PORT}" \
 			--dbprefix="${WP_DB_PREFIX}"
 
 	# Configure the Blog
