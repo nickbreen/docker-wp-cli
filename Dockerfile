@@ -36,11 +36,11 @@ RUN PECL=/usr/local/bin/docker-php-pecl-install \
 COPY entrypoint.sh oauth.php db.php /
 
 ENV WP_LOCALE="en_NZ" \
-    WP_DB_HOST="**automatically uses \$MYSQL_PORT_3306_TCP_ADDR**" \
-    WP_DB_PORT="**automatically uses \$MYSQL_PORT_3306_TCP_PORT**" \
-    WP_DB_NAME="**automatically uses \$MYSQL_DATABASE**" \
-    WP_DB_USER="**automatically uses \$MYSQL_USER**" \
-    WP_DB_PASSWORD="**automatically uses \$MYSQL_PASSWORD**" \
+    WP_DB_HOST="db" \
+    WP_DB_PORT="3306" \
+    WP_DB_NAME="wordpress" \
+    WP_DB_USER="wordpress" \
+    WP_DB_PASSWORD="wordpress" \
     WP_DB_PREFIX="wp_" \
     WP_URL="http://example.com" \
     WP_TITLE="Example Blog" \
