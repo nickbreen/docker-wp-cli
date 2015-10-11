@@ -1,7 +1,9 @@
-FROM php:5.6-fpm
+FROM php:5.6-apache
 # See https://github.com/docker-library/wordpress
 
 MAINTAINER Nick Breen <nick@foobar.net.nz>
+
+RUN a2enmod rewrite
 
 # WP-CLI requires less when showing help, ignores $PAGER!
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
@@ -56,4 +58,4 @@ ENV WP_LOCALE="en_NZ" \
 
 # Apparently, have to reset the entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["php-fpm"]
+CMD ["apache2-foreground"]
