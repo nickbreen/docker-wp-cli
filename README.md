@@ -55,11 +55,23 @@ or
 
 # Usage
 
-## Configuration
+Everything is specified using environment variables. See the example above.
 
-The database configuration can be specified explicitly with ```WP_DB_HOST```, ```WP_DB_PORT```, ```WP_DB_NAME```, ```WP_DB_USER```, ```WP_DB_PASSWORD```.
+## Download (```wp core download```)
 
-If any are omitted then values are inferred.
+The latest WordPress version will be downloaded and extracted.
+
+## Configuration (``` wp core config```)
+
+The database configuration can be specified explicitly with:
+- ```WP_DB_HOST```
+- ```WP_DB_PORT```
+- ```WP_DB_NAME```
+- ```WP_DB_USER```
+- ```WP_DB_PASSWORD```
+- ```WP_DB_PREFIX```
+
+If any are omitted then values are inferred from the linked ```:mysql``` container, otherwise sensible defaults are used.
 
 Variable             | Value inferred from            | Default
 -------------------- | ------------------------------ | ---------
@@ -68,8 +80,19 @@ Variable             | Value inferred from            | Default
 ```WP_DB_PASSWORD``` | ```MYSQL_ENV_MYSQL_PASSWORD``` | wordpress
 ```WP_DB_HOST```     | ```MYSQL_PORT_3306_TCP_ADDR``` | db
 ```WP_DB_PORT```     | ```MYSQL_PORT_3306_TCP_PORT``` | 3306
+```WP_DB_PREFIX```   | N/A                            | wp_
 
-## Themes and Plugins
+## Installation (```wp core install```)
+
+The initial site is installed, if not already installed in the DB, using the variables; each has a useless default value, so make sure you set them:
+- ```WP_LOCALE``` (default ```en_NZ```)
+- ```WP_URL``` 
+- ```WP_TITLE```
+- ```WP_ADMIN_USER```
+- ```WP_ADMIN_PASSWORD```
+- ```WP_ADMIN_EMAIL```
+
+## Themes and Plugins (```wp theme install``` and ```wp plugin install```)
 
 Themes and plugins can be installed from the WordPress.org repository, from a URL to the theme's or plugin's ZIP file. I.e.:
 
@@ -95,3 +118,14 @@ Themes and plugins can also be installed from private [Bitbucket] repositories:
 One quirk of this method is that each version/tag of a theme or plugin will be installed to a unique directory derived from the account, repository, and  commit, e.g. account_repo_cafe6789. Any commit-ish should work.
 
 [Bitbucket]: http://bitbucket "Bitbucket"
+
+## Options
+
+Any WordPress options can be set as JSON using ```WP_OPTIONS```. E.g.
+
+    WP_OPTIONS: |
+      timezone_string "Pacific/Auckland"
+      permalink_structure "\/%postname%\/"
+      some_complex_option {"access_key_id":"...","secret_access_key":"..."}
+
+Simple strings must be quoted.
