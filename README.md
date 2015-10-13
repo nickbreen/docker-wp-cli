@@ -1,97 +1,97 @@
-Run a container with an interactive shell to use WP-CLI.
+WP-CLI installed, configured, and managed WordPress site.
 
-Initial WordPress installation:
+Themes, plugins, and options can be specified as environment variables for configuration on start up.  The DB will be created if required and requires ```MYSQL_ENV_MYSQL_ROOT_PASSWORD``` be set.
 
-    docker run 
-      --name wp-cli \
-      --link db:mysql \
-      --volumes-from wp-data \
-      -e WP_URL=http://some.domain/some-url \
-      -e WP_TITLE="Blog Title" \
-      -e WP_ADMIN_USER=user \
-      -e WP_ADMIN_PASSWORD=password \
-      -e WP_ADMIN_EMAIL=user@some.domain \
-      -d nickbreen/wp_cli
+Use ```:apache``` or ```:fpm``` as required.
 
+E.g. docker-compose.yml or tutum.yml
 
-    wp core install \
-        --url="$WP_URL" \
-        --title="$WP_TITLE" \
-        --admin_user="$WP_ADMIN_USER" \
-        --admin_password="$WP_ADMIN_PASSWORD" \
-        --admin_email="$WP_ADMIN_EMAIL"
+    wp:
+      image: nickbreen/wp-cli:apache
+      mem_limit: 128m
+      links: 
+        - db:mysql
+      volumes:
+        - /var/www/html
+      environment:
+        VIRTUAL_HOST: "*.example.com"
+        WP_DB_NAME: wp_example
+        WP_DB_USER: wp_example
+        WP_DB_PASSWORD: wp_example
+        WP_LOCALE: en_NZ
+        WP_URL: http://example.com
+        WP_TITLE: Example Blog
+        WP_ADMIN_USER: example
+        WP_ADMIN_PASSWORD: example
+        WP_ADMIN_EMAIL: example@example.com
+        WP_PLUGINS: |
+          amazon-s3-and-cloudfront
+          amazon-web-services
+          wordfence
+        WP_OPTIONS: |
+          timezone_string "Pacific/Auckland"
+          permalink_structure "\/%postname%\/"
+          aws_settings {"access_key_id":"PASTE_KEY_HERE","secret_access_key":"PASTE_SECRET_HERE"}
+          tantan_wordpress_s3 {"post_meta_version":3,"bucket":"PASTE_BUCKET_NAME_HERE","region":"PASTE_REGION_HERE","domain":"path","expires":"0","cloudfront":"","object-prefix":"wp-content\/uploads\/","copy-to-s3":"1","serve-from-s3":"1","remove-local-file":"1","ssl":"request","hidpi-images":"0","object-versioning":"0","use-yearmonth-folders":"1","enable-object-prefix":"1"}
+        BB_KEY: PASTE_BITBUCKET_KEY_HERE
+        BB_SECRET: PASTE_BITBUCKET_SECRET_HERE
+        BB_PLUGINS: |
+          owner-name/repo-name tag
+        BB_THEMES: |
+          owner-name/repo-name tag
+    db:
+      image: mariadb
+      command: --innodb_file_per_table
+      environment:
+        MYSQL_ROOT_PASSWORD: example
 
-Or use ```docker-compose```.
+Run an interactive shell to use WP-CLI to administer the site.
 
-    wp_cli:
-        image: nickbreen/wp-cli
-        links:
-          - db:mysql
-        volumes:
-          - ./wxr:/var/www/wxr:ro
-        volumes_from:
-          - wp
-        environment:
-          WP_URL: http://some.domain/some-url
-          WP_TITLE: Blog Title
-          WP_ADMIN_USER: user
-          WP_ADMIN_PASSWORD: password
-          WP_ADMIN_EMAIL: user@some.domain
-          WP_IMPORT: /var/www/wxr
-          WP_THEMES: |
-            theme-slug
-            theme-slug http://theme.domain/theme-url.zip
-          WP_PLUGINS: |
-            plugin-slug
-            plugin-slug https://plugin.domain/plugin-url.zip
-          BB_KEY: "BitBucket API OAuth Key"
-          BB_SECRET: "BitBucket API OAuth Secret"
-          BB_PLUGINS: |
-            slug account/repo tag
-          BB_THEMES: |
-            slug account/repo tag
+    docker exec -u www-data CONTAINER wp set option siteurl http://example.com
 
+or
 
-The images' entrypoint provides a few convenience functions:
+    tutum exec -u www-data CONTAINER wp set option siteurl http://example.com
 
-- ```install```
-  Configures WP with URL, title, admin details as specified by the ```WP_*``` and ```BB_*``` environment variables.
-  ```BB_*``` installs from BitBucket.org, requires an API key and secret.
-- ```upgrade```
-  Upgrades WP, themes, and plugins.
-- ```import```
-  Imports all WXR files found in the WP_IMPORT directories (can also be files).
+# Usage
 
-E.g.
+## Configuration
 
-    docker-compose run --rm -u www-data wp_cli install
+The database configuration can be specified explicitly with ```WP_DB_HOST```, ```WP_DB_PORT```, ```WP_DB_NAME```, ```WP_DB_USER```, ```WP_DB_PASSWORD```.
 
+If any are omitted then values are inferred.
 
-Note: ```docker-compose``` 1.4.0 doesn't run with --volumes-from, so if you have a data container you must use docker proper.
+Variable             | Value inferred from            | Default
+-------------------- | ------------------------------ | ---------
+```WP_DB_NAME```     | ```MYSQL_ENV_MYSQL_DATABASE``` | wordpress
+```WP_DB_USER```     | ```MYSQL_ENV_MYSQL_USER```     | wordpress
+```WP_DB_PASSWORD``` | ```MYSQL_ENV_MYSQL_PASSWORD``` | wordpress
+```WP_DB_HOST```     | ```MYSQL_PORT_3306_TCP_ADDR``` | db
+```WP_DB_PORT```     | ```MYSQL_PORT_3306_TCP_PORT``` | 3306
 
-    docker run \
-      --name wp-cli \
-      --link db:mysql \
-      --volumes-from wp-data \
-      -e WP_URL=http://some.domain/some-url \
-      -e WP_TITLE="Blog Title" \
-      -e WP_ADMIN_USER=user \
-      -e WP_ADMIN_PASSWORD=password \
-      -e WP_ADMIN_EMAIL=user@some.domain \
-      -e WP_IMPORT=/var/www/wxr \
-      -e WP_THEMES='
-        theme-slug
-        theme-slug http://theme.domain/theme-url.zip' \
-      -e WP_PLUGINS:='
-        plugin-slug
-        plugin-slug https://plugin.domain/plugin-url.zip' \
-      -e BB_KEY="BitBucket API OAuth Key" \
-      -e BB_SECRET="BitBucket API OAuth Secret" \
-      -e BB_PLUGINS='
-        account/repo tag' \
-      -e BB_THEMES='
-        account/repo tag' \
-      --rm -it \
-      -u www-data \
-      nickbreen/wp-cli install
+## Themes and Plugins
 
+Themes and plugins can be installed from the WordPress.org repository, from a URL to the theme's or plugin's ZIP file. I.e.:
+
+Each theme or plugin is on its own line.
+
+    WP_THEMES: |
+      theme-slug
+      theme-slug http://theme.domain/theme-url.zip
+
+    WP_PLUGINS: |
+      plugin-slug
+      plugin-slug https://plugin.domain/plugin-url.zip
+
+Themes and plugins can also be installed from private [Bitbucket] repositories:
+
+      BB_KEY: "BitBucket API OAuth Key"
+      BB_SECRET: "BitBucket API OAuth Secret"
+      BB_PLUGINS: |
+        plugin-slug account/repo tag
+      BB_THEMES: |
+        theme-slug account/repo tag
+
+One quirk of this method is that each version/tag of a theme or plugin will be installed to a unique directory derived from the account, repository, and  commit, e.g. account_repo_cafe6789. Any commit-ish should work.
+
+[Bitbucket]: http://bitbucket "Bitbucket"
