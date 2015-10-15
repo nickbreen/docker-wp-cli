@@ -5,7 +5,7 @@ $delay = 3;
 
 // Connect as the root user
 do {
-	$mysqli = new mysqli($_ENV['WP_DB_HOST'], 'root', $_ENV['MYSQL_ENV_MYSQL_ROOT_PASSWORD'], '', $_ENV['WP_DB_PORT']);
+	@$mysqli = new mysqli($_ENV['WP_DB_HOST'], 'root', $_ENV['MYSQL_ENV_MYSQL_ROOT_PASSWORD'], '', $_ENV['WP_DB_PORT']);
 	// If the RDBMS isn't ready yet, wait and try again
 	if ($mysqli->connect_errno) {
 		--$tries;
@@ -26,12 +26,12 @@ EOSQL
 );
 
 if ($mysqli->errno) 
-	error_log("{$mysqli->errno}: {$mysqli->error}");
+	die("{$mysqli->errno}: {$mysqli->error}");
 
-// Churn through any results, though there shouldn't be any.
 do {
     if ($res = $mysqli->store_result()) {
-        var_dump($res->fetch_all(MYSQLI_ASSOC));
+        foreach ($res->fetch_all() as $row)
+        	print implode("\t", $row) . PHP_EOL;
         $res->free();
     }
 } while ($mysqli->more_results() && $mysqli->next_result());
