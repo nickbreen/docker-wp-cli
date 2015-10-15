@@ -1,0 +1,9 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+# Unless the REQUEST_FILENAME (sans PATH_INFO) is a file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# Service with /index.php and let it use PATH_INFO or the query string
+RewriteRule . /index.php [L]
+</IfModule>

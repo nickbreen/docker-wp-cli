@@ -54,7 +54,7 @@ ENV WP_LOCALE="en_NZ" \
     WP_OPTIONS=""
 
 #    WP_IMPORT "" \
-
+COPY htaccess .htaccess
 
 # Apparently, have to reset the entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]
