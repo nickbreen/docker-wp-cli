@@ -68,7 +68,7 @@ ENV NR_INSTALL_SILENT=true \
 # Configure it 'globally'
 COPY tweaks.ini /usr/local/php/conf.d/
 COPY wp-rewrites.conf /etc/apache2/conf-available/
-RUN a2enconf wp-rewrites && apache2ctl -t && php -i > /dev/null
+RUN a2enmod cache_disk && a2enconf wp-rewrites && apache2ctl -t && php -i > /dev/null
 
 COPY entrypoint.sh oauth.php db.php /
 
