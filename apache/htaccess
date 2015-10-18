@@ -1,9 +1,33 @@
+ServerName localhost
+
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /
+#RewriteBase /
 # Unless the REQUEST_FILENAME (sans PATH_INFO) is a file or directory
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME} !-f
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME} !-d
 # Service with /index.php and let it use PATH_INFO or the query string
 RewriteRule . /index.php [L]
+</IfModule>
+
+<IfModule mod_php.c>
+# 7s is long enough to try and service a request
+php_value max_execution_time 7
+# Ditto for sockets
+php_value default_socket_timeout 5
+
+# Sane error message defaults
+php_value display_errors Off
+php_value display_startup_errors Off
+php_value html_errors Off
+
+# File uploads
+php_value file_uploads On
+php_value upload_tmp_dir /tmp/php
+php_value upload_max_filesize 5M
+php_value post_max_size 5M
+php_value max_file_uploads 5
+
+# A useful default
+php_value date.timezone 'UTC'
 </IfModule>

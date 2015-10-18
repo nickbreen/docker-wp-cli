@@ -54,7 +54,9 @@ ENV WP_LOCALE="en_NZ" \
     WP_OPTIONS=""
 
 #    WP_IMPORT "" \
-COPY htaccess .htaccess
+#COPY htaccess .htaccess
+COPY htaccess /etc/apache2/conf-available/tweaks.conf
+RUN a2enconf tweaks
 
 # Apparently, have to reset the entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]

@@ -53,6 +53,7 @@ ENV WP_LOCALE="en_NZ" \
 
 #    WP_IMPORT "" \
 
+COPY tweaks.conf /usr/local/php/conf.d/tweaks.conf
 
 # Apparently, have to reset the entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]
