@@ -6,7 +6,8 @@ MAINTAINER Nick Breen <nick@foobar.net.nz>
 RUN a2enmod rewrite
 
 # WP-CLI requires less when showing help, ignores $PAGER!
-RUN DEBIAN_FRONTEND=noninteractive apt-get update \
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update -q \
     && apt-get install -qy \
         less \
         libpng12-dev \
@@ -52,11 +53,25 @@ ENV WP_LOCALE="en_NZ" \
     WP_PLUGINS="" \
     BB_PLUGINS="" \
     WP_OPTIONS=""
-
 #    WP_IMPORT "" \
+
+# Configure mod_rewrite and mod_php
 #COPY htaccess .htaccess
+# Configure it 'globally'
 COPY htaccess /etc/apache2/conf-available/tweaks.conf
 RUN a2enconf tweaks
+
+# Install New Relic support
+RUN echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' | tee /etc/apt/sources.list.d/newrelic.list \
+    && curl -sSfL https://download.newrelic.com/548C16BF.gpg | apt-key add - \
+    && apt-get update -q \
+    && apt-get install -qy newrelic-php5 \
+    && apt-get clean \
+    && echo 'newrelic.appname = "${NR_APP_NAME}"' > /usr/local/etc/php/conf.d/newrelic.conf
+
+ENV NR_INSTALL_SILENT=true \
+    NR_INSTALL_KEY="" \
+    NR_APP_NAME="${WP_URL}"
 
 # Apparently, have to reset the entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]
