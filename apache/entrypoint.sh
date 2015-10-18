@@ -161,9 +161,19 @@ function import {
 
 set -e
 env | sort
+
+# New Relic
+if [ ! -z "${NR_INSTALL_KEY}" -a ! -z "${NR_APP_NAME}" ]
+then
+	newrelic-install install
+	sed -i '/newrelic\.appname/ {s!\(newrelic\.appname = \).*!\1"'"$NR_APP_NAME"'"!;p}' /usr/local/etc/php/conf.d/newrelic.ini
+fi
+
+# Wordpress
 install
 upgrade
 options
+
 # Ensure proper ownership of the workdir.
 chown -R www-data:www-data . 
 

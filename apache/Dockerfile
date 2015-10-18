@@ -34,8 +34,6 @@ RUN PECL=/usr/local/bin/docker-php-pecl-install \
     && docker-php-ext-install gd \
     && docker-php-ext-install mysqli
 
-COPY entrypoint.sh oauth.php db.php /
-
 ENV WP_LOCALE="en_NZ" \
     WP_DB_HOST="db" \
     WP_DB_PORT="3306" \
@@ -55,23 +53,24 @@ ENV WP_LOCALE="en_NZ" \
     WP_OPTIONS=""
 #    WP_IMPORT "" \
 
-# Configure mod_rewrite and mod_php
-#COPY htaccess .htaccess
-# Configure it 'globally'
-COPY htaccess /etc/apache2/conf-available/tweaks.conf
-RUN a2enconf tweaks
-
 # Install New Relic support
 RUN echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' | tee /etc/apt/sources.list.d/newrelic.list \
     && curl -sSfL https://download.newrelic.com/548C16BF.gpg | apt-key add - \
     && apt-get update -q \
     && apt-get install -qy newrelic-php5 \
-    && apt-get clean \
-    && echo 'newrelic.appname = "${NR_APP_NAME}"' > /usr/local/etc/php/conf.d/newrelic.conf
+    && apt-get clean
 
 ENV NR_INSTALL_SILENT=true \
     NR_INSTALL_KEY="" \
     NR_APP_NAME="${WP_URL}"
+
+# Configure mod_rewrite and mod_php
+# Configure it 'globally'
+COPY tweaks.ini /usr/local/php/conf.d/
+COPY wp-rewrites.conf /etc/apache2/conf-available/
+RUN a2enconf wp-rewrites && apache2ctl -t && php -i > /dev/null
+
+COPY entrypoint.sh oauth.php db.php /
 
 # Apparently, have to reset the entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]
