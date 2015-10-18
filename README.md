@@ -13,6 +13,8 @@ WordPress is a free and open source blogging tool and a content management syste
 
 [WP-CLI] installed, configured, and managed WordPress site.
 
+Inlcudes the New Relic PHP agent.
+
 Themes, plugins, and options can be specified as environment variables for configuration on start up.  The DB will be created if required and requires ```MYSQL_ENV_MYSQL_ROOT_PASSWORD``` be set.
 
 Use ```:apache``` or ```:fpm``` as required.
@@ -102,6 +104,15 @@ Any WordPress options can be set as JSON using ```WP_OPTIONS```. E.g.
       some_complex_option {"access_key_id":"...","secret_access_key":"..."}
 
 Simple strings must be quoted.
+
+## New Relic
+
+Configure your key and application name as environment variables. The application name defaults to the value of ```$WP_URL```.
+
+    NR_APP_NAME: "${WP_URL}"
+    NR_INSTALL_KEY: "cafe..1234"
+
+If either of the variables is an empty string the new relic agent configuration will not be installed.
 
 ## Administration & Management
 
