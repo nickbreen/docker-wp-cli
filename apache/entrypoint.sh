@@ -96,11 +96,12 @@ function install_core {
 	# Skip the DB check as there isn't a mysql client available
 	rm -f wp-config.php && wp core config \
 			--skip-check \
-			--dbname="${WP_DB_NAME}" \
-			--dbuser="${WP_DB_USER}" \
-			--dbpass="${WP_DB_PASSWORD}" \
-			--dbhost="${WP_DB_HOST}:${WP_DB_PORT}" \
-			--dbprefix="${WP_DB_PREFIX}"
+			--dbname="$WP_DB_NAME" \
+			--dbuser="$WP_DB_USER" \
+			--dbpass="$WP_DB_PASSWORD" \
+			--dbhost="$WP_DB_HOST:$WP_DB_PORT" \
+			--dbprefix="$WP_DB_PREFIX" \
+			--extra-php <<< "$WP_EXTRA_PHP"
 
 	# Configure the Blog
 	wp core is-installed || wp core install \

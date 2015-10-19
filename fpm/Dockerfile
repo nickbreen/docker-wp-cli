@@ -48,9 +48,9 @@ ENV WP_LOCALE="en_NZ" \
     BB_THEMES="" \
     WP_PLUGINS="" \
     BB_PLUGINS="" \
-    WP_OPTIONS=""
-
-#    WP_IMPORT "" \
+    WP_OPTIONS="" \
+    WP_IMPORT="" \
+    WP_EXTRA_PHP=""
 
 # Install New Relic support
 RUN echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' | tee /etc/apt/sources.list.d/newrelic.list \
