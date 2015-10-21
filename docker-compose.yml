@@ -1,12 +1,27 @@
-wp:
+db:
+  image: mysql
+  command: --innodb_file_per_table
+  environment:
+    MYSQL_ROOT_PASSWORD: example
+
+php:
   image: nickbreen/wp-cli:apache
-  mem_limit: 128m
+  volumes_from:
+    - wp
+  links: 
+    - db:mysql
+  environment:
+    VIRTUAL_HOST: "*.example.com"
+    NR_APP_NAME: "example-app"
+    NR_INSTALL_KEY: example-key
+
+wp:
+  image: nickbreen/wp-cli:cli
   links: 
     - db:mysql
   volumes:
     - /var/www/html
   environment:
-    VIRTUAL_HOST: "*.example.com"
     WP_DB_NAME: wp_example
     WP_DB_USER: wp_example
     WP_DB_PASSWORD: wp_example
@@ -30,9 +45,3 @@ wp:
       owner-name/repo-name tag
     BB_THEMES: |
       owner-name/repo-name tag
-
-db:
-  image: mariadb
-  command: --innodb_file_per_table
-  environment:
-    MYSQL_ROOT_PASSWORD: example

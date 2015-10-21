@@ -1,5 +1,6 @@
 # Supported tags and respective `Dockerfile` links
 
+- [`cli` (*cli/Dockerfile*)](https://github.com/nickbreen/docker-wp-cli/blob/master/cli/Dockerfile)
 - [`apache` (*apache/Dockerfile*)](https://github.com/nickbreen/docker-wp-cli/blob/master/apache/Dockerfile)
 - [`fpm` (*fpm/Dockerfile*)](https://github.com/nickbreen/docker-wp-cli/blob/master/fpm/Dockerfile)
 
@@ -16,8 +17,6 @@ WordPress is a free and open source blogging tool and a content management syste
 Inlcudes the New Relic PHP agent.
 
 Themes, plugins, and options can be specified as environment variables for configuration on start up.  The DB will be created if required and requires ```MYSQL_ENV_MYSQL_ROOT_PASSWORD``` be set.
-
-Use ```:apache``` or ```:fpm``` as required.
 
 See docker-compose.yml for an example of configuration.
 
@@ -50,7 +49,7 @@ Variable             | Value inferred from            | Default
 ```WP_DB_NAME```     | ```MYSQL_ENV_MYSQL_DATABASE``` | wordpress
 ```WP_DB_USER```     | ```MYSQL_ENV_MYSQL_USER```     | wordpress
 ```WP_DB_PASSWORD``` | ```MYSQL_ENV_MYSQL_PASSWORD``` | wordpress
-```WP_DB_HOST```     | ```MYSQL_PORT_3306_TCP_ADDR``` | db
+```WP_DB_HOST```     | ```MYSQL_PORT_3306_TCP_ADDR``` | mysql
 ```WP_DB_PORT```     | ```MYSQL_PORT_3306_TCP_PORT``` | 3306
 ```WP_DB_PREFIX```   | N/A                            | wp_
 
@@ -107,9 +106,11 @@ Simple strings must be quoted.
 
 ## New Relic
 
+_Applies to ```apache``` and ```fpm``` only.
+
 Configure your key and application name as environment variables. The application name defaults to the value of ```$WP_URL```.
 
-    NR_APP_NAME: "${WP_URL}"
+    NR_APP_NAME: "application-name"
     NR_INSTALL_KEY: "cafe..1234"
 
 If either of the variables is an empty string the new relic agent configuration will not be installed.
@@ -127,10 +128,10 @@ Run an interactive shell to administer the installation.
     www-data@CONTAINER$ wp core update
     www-data@CONTAINER$ wp core update-db
 
-You can source the entrypoint script into the shell to use the functions defined within. Consult ```entrypoint.sh``` for documentation.
+One can source the setup script into the shell to use the functions defined within. Consult ```setup.sh``` for documentation.
 
     docker exec -u www-data -it CONTAINER bash
-    www-data@CONTAINER$ . /entrypoint.sh
+    www-data@CONTAINER$ . /setup.sh
     www-data@CONTAINER$ # Now install a new theme
     www-data@CONTAINER$ install_a theme <<< "theme-slug"
     www-data@CONTAINER$ # Now install a BB plugin
