@@ -93,10 +93,10 @@ function install_core {
 	wp core download --locale="${WP_LOCALE}" || true
 
 	# Configure the database 
-	# Fallback to the explicit DB config if no mysql container is linked
 	# Assume that a DB has already been created
 	# Skip the DB check as there isn't a mysql client available
-	[ -f wp-config.php ] || wp core config \
+	rm -f wp-config.php
+	wp core config \
 			--skip-check \
 			--locale="${WP_LOCALE}" \
 			--dbname="${WP_DB_NAME}" \
