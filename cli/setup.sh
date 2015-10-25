@@ -139,6 +139,16 @@ function options {
 	done <<< "$WP_OPTIONS"
 }
 
+# Allows execution of arbitrary WP-CLI commands.
+# I suppose this is either quite dangerous and makes most of 
+# the rest of this script redundant.
+function wp_commands {
+	while read CMD;
+	do
+		[ -z "$CMD" ] || wp $CMD
+	done <<< "$WP_COMMANDS"
+}
+
 function import {
 	wp plugin is-installed wordpress-importer || install_a plugin <<< "wordpress-importer"
 	wp plugin activate wordpress-importer
@@ -157,5 +167,6 @@ wp core update \
 	&& wp core update-db \
 	&& wp theme update --all \
 	&& wp plugin update --all
+wp_commands
 # Ensure proper ownership of the workdir.
 chown -R www-data:www-data . 
