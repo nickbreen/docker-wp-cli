@@ -24,4 +24,4 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-* *    * * *    www-data php /var/www/html/wp-cron.php; touch /var/www/html/.wp-cron
+* *    * * *    www-data php /var/www/html/wp-cron.php && touch /var/www/html/.wp-cron
