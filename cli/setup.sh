@@ -168,5 +168,8 @@ wp core update \
 	&& wp theme update --all \
 	&& wp plugin update --all
 wp_commands
+
 # Ensure proper ownership of the workdir.
-chown -R www-data:www-data . 
+chmod -R g-w .
+chmod -R g+w wp-content/uploads
+chown -R nobody:www-data . 
