@@ -10,6 +10,7 @@ function wp {
 }
 
 # Juggle ENV VARS
+echo MYSQL_ROOT_PASSWORD = ${MYSQL_ROOT_PASSWORD:=$MYSQL_ENV_MYSQL_ROOT_PASSWORD}
 echo WP_DB_NAME = ${WP_DB_NAME:=$MYSQL_ENV_MYSQL_DATABASE}
 echo WP_DB_USER = ${WP_DB_USER:=$MYSQL_ENV_MYSQL_USER}
 echo WP_DB_PASSWORD = ${WP_DB_PASSWORD:=$MYSQL_ENV_MYSQL_PASSWORD}
@@ -92,7 +93,7 @@ function install_core {
 	# Always download the lastest WP
 	wp core download --locale="${WP_LOCALE}" || true
 
-	# Configure the database 
+	# Configure the database
 	# Assume that a DB has already been created
 	# Skip the DB check as there isn't a mysql client available
 	rm -f wp-config.php
@@ -140,7 +141,7 @@ function options {
 }
 
 # Allows execution of arbitrary WP-CLI commands.
-# I suppose this is either quite dangerous and makes most of 
+# I suppose this is either quite dangerous and makes most of
 # the rest of this script redundant.
 function wp_commands {
 	while read CMD;
@@ -172,4 +173,4 @@ wp_commands
 # Ensure proper ownership of the workdir.
 chmod -R g-w .
 chmod -R g+w wp-content/uploads
-chown -R nobody:www-data . 
+chown -R nobody:www-data .
