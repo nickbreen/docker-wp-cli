@@ -32,7 +32,8 @@ RUN PECL=/usr/local/bin/docker-php-pecl-install \
     && docker-php-ext-install gd \
     && docker-php-ext-install mysqli
 
-ENV WP_LOCALE="en_NZ" \
+ENV MYSQL_ROOT_PASSWORD="" \
+    WP_LOCALE="en_NZ" \
     WP_DB_HOST="mysql" \
     WP_DB_PORT="3306" \
     WP_DB_NAME="wordpress" \
