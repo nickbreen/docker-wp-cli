@@ -26,12 +26,12 @@ See docker-compose.yml for an example of configuration.
 
 Everything is specified using environment variables. See the example above.
 
-## Download 
+## Download
 Uses ```wp core download```.
 
 The latest WordPress version will be downloaded and extracted.
 
-## Configuration 
+## Configuration
 Uses ``` wp core config```.
 
 The database configuration can be specified explicitly with:
@@ -53,18 +53,30 @@ Variable             | Value inferred from            | Default
 ```WP_DB_PORT```     | ```MYSQL_PORT_3306_TCP_PORT``` | 3306
 ```WP_DB_PREFIX```   | N/A                            | wp_
 
-## Installation 
+```--extra-php``` is supported with the ```WP_EXTRA_PHP``` environment variable. E.g.
+
+    WP_EXTRA_PHP: |
+      define('DISABLE_WP_CRON', true);
+
+*Important*! If you're -cheating- using ```ErrorDocument /index.php``` instead of mod_rewrite you'll /probably/ need to coerce WP into returning a normal 200 OK status.
+
+    WP_EXTRA_PHP: |
+      header("HTTP/1.1 200 OK");
+
+This case is specifically noticed with WooCommerce.
+
+## Installation
 Uses ```wp core install```.
 
 The initial DB is installed, if not already installed in the DB, using the variables; each has a useless default value, so make sure you set them:
 - ```WP_LOCALE``` (default ```en_NZ```)
-- ```WP_URL``` 
+- ```WP_URL```
 - ```WP_TITLE```
 - ```WP_ADMIN_USER```
 - ```WP_ADMIN_PASSWORD```
 - ```WP_ADMIN_EMAIL```
 
-## Themes and Plugins 
+## Themes and Plugins
 Uses ```wp theme install``` and ```wp plugin install```.
 
 Themes and plugins can be installed from the WordPress.org repository, from a URL to the theme's or plugin's ZIP file. I.e.:
@@ -124,7 +136,7 @@ Use [WP-CLI] directly:
 Run an interactive shell to administer the installation.
 
     docker exec -u www-data -it CONTAINER bash
-    www-data@CONTAINER$ wp core check-update 
+    www-data@CONTAINER$ wp core check-update
     www-data@CONTAINER$ wp core update
     www-data@CONTAINER$ wp core update-db
 
@@ -136,6 +148,3 @@ One can source the setup script into the shell to use the functions defined with
     www-data@CONTAINER$ install_a theme <<< "theme-slug"
     www-data@CONTAINER$ # Now install a BB plugin
     www-data@CONTAINER$ install_b plugin <<< "plugin-slug account/repo tag"
-
-
-

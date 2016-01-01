@@ -36,12 +36,10 @@ function install_a {
 	local A=$1
 	while read SLUG URL;
 	do
-		if [ "$SLUG" -a "$URL" ]
+		if [ "$SLUG" ]
 		then
-			wp $A is-installed $SLUG || wp $A install "$URL"
-		elif [ "$SLUG" ]
-		then
-			wp $A is-installed $SLUG || wp $A install $SLUG
+			wp $A is-installed $SLUG || wp $A install ${URL:-$SLUG}
+			wp $A activate $SLUG
 		fi
 	done
 }
@@ -72,11 +70,11 @@ function install_b {
 	do
 		if [ "$REPO" ]
 		then
-			# TODO add support for the 'latest' tag by omission of the tag value
-			local URL="https://bitbucket.org/${REPO}/get/${TAG}.zip"
-			# TODO use a mktemp file for the ZIP and clean up afterwards
-			local ZIP="wp-content/${A}s/${REPO/\//.}.${TAG}.zip"
-			bb $URL > $ZIP || echo Tag does not exist for: $REPO @ $TAG && wp $A install $ZIP --force
+			local URL="https://bitbucket.org/${REPO}/get/${TAG:-master}.zip"
+			local ZIP="wp-content/${A}s/${REPO/\//.}.${TAG:-master}.zip"
+			# TODO get tar.gz instead, normalise the root dir name
+			#+ using tar --strip-component=1 -C $SLUG and then zip $SLUG to a tmp file
+			bb $URL > $ZIP || echo Tag does not exist for: $REPO @ ${TAG:-master} && wp $A install $ZIP --force
 		fi
 	done
 }
@@ -162,7 +160,6 @@ function import {
 install_core
 install_themes
 install_plugins
-wp plugin activate --all
 options
 wp core update \
 	&& wp core update-db \
