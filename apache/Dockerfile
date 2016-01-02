@@ -29,7 +29,7 @@ COPY entrypoint.sh /
 # Configure mod_rewrite, mod_cache, mod_php
 # Test the configuration
 COPY wp.conf /etc/apache2/conf-available/
-RUN a2enmod rewrite cache_disk expires \
+RUN a2enmod dir cache_disk expires \
     && a2enconf wp \
     && apache2ctl -t
 

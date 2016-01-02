@@ -165,11 +165,8 @@ wp core update \
 	&& wp plugin update --all
 wp_commands
 
-# Allow WP to alter the rewrite rules
-touch .htaccess
-
 # Ensure proper ownership and permissions.
 # 'nobody' owns the files,
 chown -R nobody:www-data .
 chmod -R g-w,o-rwx .
-chmod -R g+w wp-content/uploads .htaccess
+chmod -R g+w wp-content/uploads
