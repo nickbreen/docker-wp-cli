@@ -62,8 +62,6 @@ function install_a {
 # 3. Deactivate the old theme/plugin. E.g. wp theme deactivate some_theme_12345678
 # 4. Activate the new theme/plugin. E.g. wp theme activate some_theme_90abcdef
 #
-# TODO fetch [a specific] tagged download from BB
-#
 function install_b {
 	local A=$1
 	while read REPO TAG;
@@ -72,8 +70,8 @@ function install_b {
 		then
 			local URL="https://bitbucket.org/${REPO}/get/${TAG:-master}.zip"
 			local ZIP="wp-content/${A}s/${REPO/\//.}.${TAG:-master}.zip"
-			# TODO get tar.gz instead, normalise the root dir name
-			#+ using tar --strip-component=1 -C $SLUG and then zip $SLUG to a tmp file
+			# TODO get tar.gz instead, normalise the root dir name to $SLUG
+			#+ using tar --strip-component=1 -C $SLUG and then zip and install
 			bb $URL > $ZIP || echo Tag does not exist for: $REPO @ ${TAG:-master} && wp $A install $ZIP --force
 		fi
 	done
@@ -167,7 +165,11 @@ wp core update \
 	&& wp plugin update --all
 wp_commands
 
-# Ensure proper ownership of the workdir.
-chmod -R g-w .
-chmod -R g+w wp-content/uploads
+# Allow WP to alter the rewrite rules
+touch .htaccess
+
+# Ensure proper ownership and permissions.
+# 'nobody' owns the files,
 chown -R nobody:www-data .
+chmod -R g-w,o-rwx .
+chmod -R g+w wp-content/uploads .htaccess

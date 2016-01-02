@@ -55,6 +55,8 @@ ENV MYSQL_ROOT_PASSWORD="" \
 
 COPY setup.sh oauth.php db.php /
 
+COPY wp-cli.yml /root/.wp-cli/config.yml
+
 VOLUME /var/www/html
 WORKDIR /var/www/html
 
