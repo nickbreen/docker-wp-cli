@@ -26,19 +26,18 @@ echo WP_DB_PORT = ${WP_DB_PORT:=$MYSQL_PORT_3306_TCP_PORT}
 #   some-other-plugin http://some.other/plugin.zip
 #
 # Usage:
-#   install_a plugin <<< "plugin_slug plugin_url"
+#   install_a plugin <<< "plugin_slug|plugin_url"
 #   install_a theme <<-EOT
 #     theme_slug1
-#     theme_slug2 http://theme_url2
+#     http://theme_url2
 #   EOT
 #
 function install_a {
-	local A=$1
-	while read SLUG URL;
+	while read SLUG;
 	do
 		if [ "$SLUG" ]
 		then
-			wp $A is-installed $SLUG || wp $A install ${URL:-$SLUG} --activate
+			wp $1 is-installed $SLUG || wp $1 install $SLUG --activate
 		fi
 	done
 }
@@ -47,38 +46,66 @@ function install_a {
 # Usage:
 #   install_b plugin|theme <<< "REPO TAG"
 #
-# REPO is the BitBucket account/repository value.
-# TAG is any tag|branch|commitish
+# REPO is the account/repository.
+# TAG is optionally any tag|branch|commitish
 #
 # Requires $BB_KEY and $BB_SECRET environment variables.
 #
-# Note that a BitBucket ZIP contains a directory named for the project
-# and the commit. E.g. some_theme_12345678
+# Note that the ZIP contains a directory named for the project
+# and the commit. E.g. owner-repo-commitish
 #
 # To update or replace a theme or plugin:
-# 1. Install the new theme/plugin. E.g. some_theme_90abcdef
-# 2. Find the old directory with the matching prefix. E.g. some_theme_12345678
-# 3. Deactivate the old theme/plugin. E.g. wp theme deactivate some_theme_12345678
-# 4. Activate the new theme/plugin. E.g. wp theme activate some_theme_90abcdef
+# 1. Install the new theme/plugin. E.g. owner-repo-commitish
+# 2. Find the old directory with the matching prefix. E.g. owner-repo-commitish
+# 3. Deactivate the old theme/plugin. E.g. wp theme deactivate owner-repo-commitish
+# 4. Activate the new theme/plugin. E.g. wp theme activate owner-repo-commitish
 #
 function install_b {
-	local A=$1
 	while read REPO TAG;
 	do
 		if [ "$REPO" ]
 		then
 			local URL="https://bitbucket.org/${REPO}/get/${TAG:-master}.zip"
-			local ZIP="wp-content/${A}s/${REPO/\//.}.${TAG:-master}.zip"
+			local ZIP="${REPO/\//-}-${TAG:-master}.zip"
 			# TODO get tar.gz instead, normalise the root dir name to $SLUG
 			#+ using tar --strip-component=1 -C $SLUG and then zip and install
-			bb $URL > $ZIP || echo Tag does not exist for: $REPO @ ${TAG:-master} && wp $A install $ZIP --force
+			php /oauth.php -v --key "$BB_KEY" --secret "$BB_SECRET" --url $URL > $ZIP
+			wp $1 install $ZIP --activate --force
 		fi
 	done
 }
 
-# Dirty function to call the oauth.php script
-function bb {
-	php /oauth.php --key "$BB_KEY" --secret "$BB_SECRET" --url "$1"
+# Installs themes or plugins specified on STDIN hosted at GitHub.
+# Usage:
+#   install_g plugin|theme <<< "REPO TAG"
+#
+# REPO is the account/repository.
+# TAG is optionally any tag|branch|commitish
+#
+function install_g {
+	while read REPO TAG
+	do
+		if [ "$REPO" ]
+		then
+			# Get the tarball URL for the latest (or specified release)
+			local URL=$(curl -sL "https://api.github.com/repos/${REPO}/releases/${TAG:-latest}" | jq -r '.tarball_url')
+			# If no releases are available fail-back to a commitish
+			${URL:=https://api.github.com/repos/${REPO}/tarball/${TAG:-master}}
+			# Fetch the tarball, extract it and re-zip (store only) using the
+			# canonicalised name. This assumes that the project name is the canonical
+			# name for the theme or plugin! This may not actually be the case! If not
+			# then we'll need to specify a SLUG.
+			local TMP=$(mktemp -d)
+			pushd $TMP
+			TGZ=$(curl -sLJOw '$TMP/%{filename_effective}' $URL)
+			mkdir -p ${REPO##*/}
+			tar xzf $TGZ --strip-components 1 -C ${REPO##*/}
+			zip -0rm ${REPO##*/}.zip ${REPO##*/}
+			popd
+			wp $1 install $TMP/${REPO##*/}.zip --force --activate
+			rm -rf $TMP
+		fi
+	done
 }
 
 function install_core {
@@ -113,14 +140,14 @@ function install_core {
 
 function install_themes {
 	install_a theme <<< "$WP_THEMES"
+	install_g theme <<< "$GH_THEMES"
 	install_b theme <<< "$BB_THEMES"
-#	wp theme list
 }
 
 function install_plugins {
 	install_a plugin <<< "$WP_PLUGINS"
+	install_g plugin <<< "$GH_PLUGINS"
 	install_b plugin <<< "$BB_PLUGINS"
-#	wp plugin list
 }
 
 # Sets options as specified in STDIN.

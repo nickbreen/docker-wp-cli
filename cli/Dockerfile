@@ -7,6 +7,7 @@ MAINTAINER Nick Breen <nick@foobar.net.nz>
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update -q \
     && apt-get install -qy \
+        jq \
         less \
         libpng12-dev \
         libjpeg-dev \
