@@ -38,8 +38,7 @@ function install_a {
 	do
 		if [ "$SLUG" ]
 		then
-			wp $A is-installed $SLUG || wp $A install ${URL:-$SLUG}
-			wp $A activate $SLUG
+			wp $A is-installed $SLUG || wp $A install ${URL:-$SLUG} --activate
 		fi
 	done
 }
