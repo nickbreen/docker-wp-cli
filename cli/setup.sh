@@ -51,36 +51,24 @@ function install_a {
 #
 # Requires $BB_KEY and $BB_SECRET environment variables.
 #
-# Note that the ZIP contains a directory named for the project
-# and the commit. E.g. owner-repo-commitish
-#
-# To update or replace a theme or plugin:
-# 1. Install the new theme/plugin. E.g. owner-repo-commitish
-# 2. Find the old directory with the matching prefix. E.g. owner-repo-commitish
-# 3. Deactivate the old theme/plugin. E.g. wp theme deactivate owner-repo-commitish
-# 4. Activate the new theme/plugin. E.g. wp theme activate owner-repo-commitish
-#
 function install_b {
 	while read REPO TAG;
 	do
 		if [ "$REPO" ]
 		then
 			local URL="https://bitbucket.org/${REPO}/get/${TAG:-master}.zip"
-			local ZIP="${REPO/\//-}-${TAG:-master}.zip"
-			# TODO get tar.gz instead, normalise the root dir name to $SLUG
-			#+ using tar --strip-component=1 -C $SLUG and then zip and install
-			php /oauth.php -v --key "$BB_KEY" --secret "$BB_SECRET" --url $URL > $ZIP
-			wp $1 install $ZIP --activate --force
+			TGZ=$(php /oauth.php -O -k "$BB_KEY" -s "$BB_SECRET" -- $URL)
+			install_tgz $TGZ
 		fi
 	done
 }
 
 # Installs themes or plugins specified on STDIN hosted at GitHub.
 # Usage:
-#   install_g plugin|theme <<< "REPO TAG"
+#   install_g plugin|theme <<< "REPO [TAG]"
 #
 # REPO is the account/repository.
-# TAG is optionally any tag|branch|commitish
+# TAG is optionally any release|tag|branch|commitish
 #
 function install_g {
 	while read REPO TAG
@@ -95,17 +83,21 @@ function install_g {
 			# canonicalised name. This assumes that the project name is the canonical
 			# name for the theme or plugin! This may not actually be the case! If not
 			# then we'll need to specify a SLUG.
-			local TMP=$(mktemp -d)
-			pushd $TMP
-			TGZ=$(curl -sLJOw '$TMP/%{filename_effective}' $URL)
-			mkdir -p ${REPO##*/}
-			tar xzf $TGZ --strip-components 1 -C ${REPO##*/}
-			zip -0rm ${REPO##*/}.zip ${REPO##*/}
-			popd
-			wp $1 install $TMP/${REPO##*/}.zip --force --activate
-			rm -rf $TMP
+			TGZ=$(curl -sLJOw '%{filename_effective}' $URL)
+			install_tgz $TGZ
 		fi
 	done
+}
+
+function install_tgz {
+	local TMP=$(mktemp -d)
+	pushd $TMP
+	mkdir -p ${REPO##*/}
+	tar xzf $1 --strip-components 1 -C ${REPO##*/}
+	zip -0rm ${REPO##*/}.zip ${REPO##*/}
+	popd
+	wp $1 install $TMP/${REPO##*/}.zip --force --activate
+	rm -rf $TMP
 }
 
 function install_core {

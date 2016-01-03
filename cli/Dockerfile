@@ -27,11 +27,15 @@ RUN PHAR=/usr/local/lib/php/wp-cli.phar &&\
 RUN PECL=/usr/local/bin/docker-php-pecl-install \
     && curl -sSfLo $PECL https://raw.githubusercontent.com/helderco/docker-php/master/template/bin/docker-php-pecl-install \
     && chmod +x $PECL \
+    && docker-php-ext-install json gd mysqli \
     && docker-php-ext-enable opcache \
-    && docker-php-pecl-install oauth \
-    && docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr \
-    && docker-php-ext-install gd \
-    && docker-php-ext-install mysqli
+    && docker-php-pecl-install oauth-1.2.3 \
+    && docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr
+
+#    PHP_INI=/usr/local/etc/php/php.ini \
+#    && touch $PHP_INI \
+#    && pecl config-set php_ini $PHP_INI \
+#    && pear config-set php_ini $PHP_INI \
 
 ENV MYSQL_ROOT_PASSWORD="" \
     WP_LOCALE="en_NZ" \
@@ -55,6 +59,8 @@ ENV MYSQL_ROOT_PASSWORD="" \
     WP_EXTRA_PHP=""
 
 COPY setup.sh oauth.php db.php /
+
+RUN for p in /*.php; do php -l $p; done
 
 COPY wp-cli.yml /root/.wp-cli/config.yml
 
