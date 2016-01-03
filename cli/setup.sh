@@ -33,7 +33,7 @@ echo WP_DB_PORT = ${WP_DB_PORT:=$MYSQL_PORT_3306_TCP_PORT}
 #   EOT
 #
 function install_a {
-	while read SLUG;
+	while read SLUG
 	do
 		if [ "$SLUG" ]
 		then
@@ -52,13 +52,13 @@ function install_a {
 # Requires $BB_KEY and $BB_SECRET environment variables.
 #
 function install_b {
-	while read REPO TAG;
+	while read REPO TAG
 	do
 		if [ "$REPO" ]
 		then
-			local URL="https://bitbucket.org/${REPO}/get/${TAG:-master}.zip"
+			local URL="https://bitbucket.org/${REPO}/get/${TAG:-master}.tar.gz"
 			TGZ=$(php /oauth.php -O -k "$BB_KEY" -s "$BB_SECRET" -- $URL)
-			install_tgz $TGZ
+			install_tgz $1 $TGZ
 		fi
 	done
 }
@@ -70,32 +70,34 @@ function install_b {
 # REPO is the account/repository.
 # TAG is optionally any release|tag|branch|commitish
 #
+# Will authenticate with GitHub if a GH_TOKEN environment variable exists.
+#
 function install_g {
+	set -x +e
 	while read REPO TAG
 	do
 		if [ "$REPO" ]
 		then
 			# Get the tarball URL for the latest (or specified release)
-			local URL=$(curl -sL "https://api.github.com/repos/${REPO}/releases/${TAG:-latest}" | jq -r '.tarball_url')
+			local URL=$(curl -sfL ${GH_TOKEN:+-u $GH_TOKEN} "https://api.github.com/repos/${REPO}/releases/${TAG:-latest}" | jq -r '.tarball_url')
 			# If no releases are available fail-back to a commitish
-			${URL:=https://api.github.com/repos/${REPO}/tarball/${TAG:-master}}
-			# Fetch the tarball, extract it and re-zip (store only) using the
-			# canonicalised name. This assumes that the project name is the canonical
-			# name for the theme or plugin! This may not actually be the case! If not
-			# then we'll need to specify a SLUG.
-			TGZ=$(curl -sLJOw '%{filename_effective}' $URL)
-			install_tgz $TGZ
+			: ${URL:=https://api.github.com/repos/${REPO}/tarball/${TAG:-master}}
+			TGZ=$(curl -sfLJO ${GH_TOKEN:+-u $GH_TOKEN} -w '%{filename_effective}' $URL)
+			install_tgz $1 $TGZ
 		fi
 	done
+	set +x -e
 }
 
+# Extract the tarball and re-zip (store only) using the canonicalised name.
+# This assumes that the project name is the canonical name for the theme
+# or plugin! This may not actually be the case! If not then we'll need to
+# specify a SLUG.
 function install_tgz {
 	local TMP=$(mktemp -d)
-	pushd $TMP
-	mkdir -p ${REPO##*/}
-	tar xzf $1 --strip-components 1 -C ${REPO##*/}
-	zip -0rm ${REPO##*/}.zip ${REPO##*/}
-	popd
+	mkdir -p $TMP/${REPO##*/}
+	tar xzf $2 --strip-components 1 -C $TMP/${REPO##*/} && rm $2
+	( cd $TMP; zip -0qrm ${REPO##*/}.zip ${REPO##*/} )
 	wp $1 install $TMP/${REPO##*/}.zip --force --activate
 	rm -rf $TMP
 }

@@ -11,6 +11,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
         less \
         libpng12-dev \
         libjpeg-dev \
+        zip \
     && apt-get clean
 
 # Install WP-CLI http://wp-cli.org
