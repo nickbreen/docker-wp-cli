@@ -9,6 +9,7 @@ db:
 wp:
   #image: nickbreen/wp-cli:cli
   build: .
+  # command: ls -la
   links:
     - db:mysql
   environment:

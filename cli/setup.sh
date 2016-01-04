@@ -195,9 +195,3 @@ wp core update \
 	&& wp theme update --all \
 	&& wp plugin update --all
 wp_commands
-
-# Ensure proper ownership and permissions.
-# 'nobody' owns the files,
-chown -R nobody:www-data .
-chmod -R g-w,o-rwx .
-chmod -R g+w wp-content/uploads
