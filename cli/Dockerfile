@@ -28,9 +28,9 @@ ENV MYSQL_ROOT_PASSWORD="" \
     WP_IMPORT="" \
     WP_EXTRA_PHP=""
 
-COPY setup.sh oauth.php db.php /
+COPY setup.sh oauth.php /
 
-RUN for p in /*.php; do php -l $p; done && bash -n /setup.sh
+RUN php -l /oauth.php && bash -n /setup.sh
 
 VOLUME /var/www/html
 WORKDIR /var/www/html
