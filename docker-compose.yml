@@ -8,7 +8,7 @@ php:
   image: nickbreen/wp-cli:apache
   volumes_from:
     - wp
-  links: 
+  links:
     - db:mysql
   environment:
     VIRTUAL_HOST: "*.example.com"
@@ -17,7 +17,7 @@ php:
 
 wp:
   image: nickbreen/wp-cli:cli
-  links: 
+  links:
     - db:mysql
   volumes:
     - /var/www/html
@@ -33,7 +33,6 @@ wp:
     WP_PLUGINS: |
       amazon-s3-and-cloudfront
       amazon-web-services
-      wordfence
     WP_OPTIONS: |
       timezone_string "Pacific/Auckland"
       permalink_structure "\/%postname%\/"

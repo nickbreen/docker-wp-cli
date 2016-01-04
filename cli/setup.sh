@@ -73,20 +73,20 @@ function install_b {
 # Will authenticate with GitHub if a GH_TOKEN environment variable exists.
 #
 function install_g {
-	set -x +e
 	while read REPO TAG
 	do
 		if [ "$REPO" ]
 		then
+			set +e
 			# Get the tarball URL for the latest (or specified release)
 			local URL=$(curl -sfL ${GH_TOKEN:+-u $GH_TOKEN} "https://api.github.com/repos/${REPO}/releases/${TAG:-latest}" | jq -r '.tarball_url')
 			# If no releases are available fail-back to a commitish
 			: ${URL:=https://api.github.com/repos/${REPO}/tarball/${TAG:-master}}
 			TGZ=$(curl -sfLJO ${GH_TOKEN:+-u $GH_TOKEN} -w '%{filename_effective}' $URL)
+			set -e
 			install_tgz $1 $TGZ
 		fi
 	done
-	set +x -e
 }
 
 # Extract the tarball and re-zip (store only) using the canonicalised name.
@@ -102,9 +102,18 @@ function install_tgz {
 	rm -rf $TMP
 }
 
+# Connect as root and create the WP DB and user with priv's.
+function db {
+	mysql --connect_timeout=60 -h$WP_DB_HOST -P$WP_DB_PORT -uroot -p$MYSQL_ROOT_PASSWORD <<EOSQL
+		CREATE DATABASE IF NOT EXISTS $WP_DB_NAME;
+		GRANT ALL PRIVILEGES ON $WP_DB_NAME.* TO "$WP_DB_USER" IDENTIFIED BY "$WP_DB_PASSWORD";
+		FLUSH PRIVILEGES;
+EOSQL
+}
+
 function install_core {
 	# Setup the database
-	php /db.php
+	while ! db; do sleep 1; done
 
 	# Always download the lastest WP
 	wp core download --locale="${WP_LOCALE}" || true
@@ -113,8 +122,9 @@ function install_core {
 	# Assume that a DB has already been created
 	# Skip the DB check as there isn't a mysql client available
 	rm -f wp-config.php
+	#			--skip-check \
+
 	wp core config \
-			--skip-check \
 			--locale="${WP_LOCALE}" \
 			--dbname="${WP_DB_NAME}" \
 			--dbuser="${WP_DB_USER}" \
@@ -123,6 +133,7 @@ function install_core {
 			--dbprefix="${WP_DB_PREFIX}" \
 			--extra-php <<< "${WP_EXTRA_PHP}"
 
+	# TODO Fix sh: 1: /usr/sbin/sendmail: not found
 	# Configure the Blog
 	wp core is-installed || wp core install \
 			--url="$WP_URL" \
