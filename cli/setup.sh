@@ -1,14 +1,5 @@
 #!/bin/bash
 
-set -e
-
-WP=$(which wp)
-
-# Dirty function alias for wp-cli
-function wp {
-	$WP --allow-root "$@"
-}
-
 # Juggle ENV VARS
 echo MYSQL_ROOT_PASSWORD = ${MYSQL_ROOT_PASSWORD:=$MYSQL_ENV_MYSQL_ROOT_PASSWORD}
 echo WP_DB_NAME = ${WP_DB_NAME:=$MYSQL_ENV_MYSQL_DATABASE}
@@ -179,7 +170,6 @@ function wp_commands {
 
 function import {
 	wp plugin is-installed wordpress-importer || install_a plugin <<< "wordpress-importer"
-	wp plugin activate wordpress-importer
 	# wp option update siteurl "$WP_URL"
 	# wp option update home "$WP_URL"
 	echo 'Importing, this may take a *very* long time.'
