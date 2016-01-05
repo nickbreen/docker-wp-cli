@@ -18,117 +18,33 @@
 
 This image is based on a cron service that runs continuously.
 
-You (currently) should specify a cron job to invoke WP's cron jobs, and disable WPP's normal wp-cron stuff (see **EXTRA_PHP** below).
+See [docker-compose.yml](./docker-compose.yml) for a trivial example.
 
-Everything is specified using environment variables.
+# Advanced Usage
 
-To automatically install WP use two containers:
+Any list of WP-CLI commands can be executed with a little shell and environment trickery.
 
-    # docker-compose.yml
-    # This one runs the cron service and contains the 'data' volumes
-    wp-cli:
-      image: nickbreen/wp-cli
+See [docker-compose.yml](./docker-compose.yml) for an advanced examples ```wpz``` and ```wpx```.
 
-    # This one runs the setup script and then terminates.
-    wp-setup:
-      image: nickbreen/cli
-      command: /setup.sh
-      volumes_from:
-        - wp-cli
-      environment:
-        # yadda, see below
+# Cron
 
-# Automated Setup
+You should disable WP's cron function and specify a cron job to invoke WP's cron jobs.
 
-## Download
-Uses ```wp core download```.
-
-The latest WordPress version will be downloaded and extracted.
-
-## Configuration
-Uses ``` wp core config```.
-
-The database configuration can be specified explicitly with:
-
-- ```WP_DB_HOST```
-- ```WP_DB_PORT```
-- ```WP_DB_NAME```
-- ```WP_DB_USER```
-- ```WP_DB_PASSWORD```
-- ```WP_DB_PREFIX```
-
-If any are omitted then values are inferred from the linked ```:mysql``` container, otherwise sensible defaults are used.
-
-Variable             | Value inferred from            | Default
--------------------- | ------------------------------ | ---------
-```WP_DB_NAME```     | ```MYSQL_ENV_MYSQL_DATABASE``` | wordpress
-```WP_DB_USER```     | ```MYSQL_ENV_MYSQL_USER```     | wordpress
-```WP_DB_PASSWORD``` | ```MYSQL_ENV_MYSQL_PASSWORD``` | wordpress
-```WP_DB_HOST```     | ```MYSQL_PORT_3306_TCP_ADDR``` | mysql
-```WP_DB_PORT```     | ```MYSQL_PORT_3306_TCP_PORT``` | 3306
-```WP_DB_PREFIX```   | N/A                            | wp_
-
-```--extra-php``` is supported with the ```WP_EXTRA_PHP``` environment variable. E.g.
-
-    WP_EXTRA_PHP: |
+    wp core config ... --extra-php <<-PHP    
       define('DISABLE_WP_CRON', true);
+    PHP
+    ...
+    wp cron test
 
-## Installation
-Uses ```wp core install```.
+And in ```docker-compose.yml```:
 
-The initial DB is installed, if not already installed in the DB, using the variables; each has a useless default value, so make sure you set them:
-- ```WP_LOCALE``` (default ```en_NZ```)
-- ```WP_URL```
-- ```WP_TITLE```
-- ```WP_ADMIN_USER```
-- ```WP_ADMIN_PASSWORD```
-- ```WP_ADMIN_EMAIL```
-
-## Themes and Plugins
-Uses ```wp theme install``` and ```wp plugin install```.
-
-Themes and plugins can be installed from the WordPress.org repository, from a URL to the theme's or plugin's ZIP file. I.e.:
-
-Each theme or plugin is on its own line.
-
-    WP_THEMES: |
-      theme-slug
-      http://theme.domain/theme-url.zip
-
-    WP_PLUGINS: |
-      plugin-slug
-      https://plugin.domain/plugin-url.zip
-
-Themes and plugins can also be installed from [Bitbucket] (OAuth 1.0a supported for private repositories) and [GitHub] (HTTP Basic Auth via Token for private repositories):
-
-      BB_KEY: "BitBucket API OAuth Key"
-      BB_SECRET: "BitBucket API OAuth Secret"
-      BB_PLUGINS: |
-        account/repo [tag]
-      BB_THEMES: |
-        account/repo [tag]
-      GH_TOKEN: xxxxxxxxx
-      GH_THEME: |
-        CherryFramework/CherryFramework
-
-[Bitbucket]: https://bitbucket.com "Bitbucket"
-[GitHub]: https://github.com "GitHub"
-
-## Options
-Uses ```wp option set```.
-
-Any WordPress options can be set as JSON using ```WP_OPTIONS```. E.g.
-
-    WP_OPTIONS: |
-      timezone_string "Pacific/Auckland"
-      some_complex_option {"access_key_id":"...","secret_access_key":"..."}
-
-Simple strings must be quoted.
-
-## Arbitrary WP-CLI Commands
-
-Any WP-CLI command can be executed; e.g.:
-
-    WP_COMMANDS: |
-      rewrite structure /%postname%
-      rewrite flush
+    wp-cron:
+      build: .
+      environment:
+        CRON_TAB: |-
+          # Execute WP's cron jobs
+          * * * * * wp cron event list --format=csv  --fields=hook,next_run_relative | awk -F ',' '$2 == "now" {print $1}' | xargs -l1 wp cron event run
+          # Backup WP
+          0 3 * * * wp db export 
+          # Update WP
+          0 4 * * * wp core update; wp core update-db; wp theme update --all; wp plugin update --all

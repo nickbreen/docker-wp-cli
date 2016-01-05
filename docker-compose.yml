@@ -1,19 +1,70 @@
+# Trivial example. Download WP and ls the directory.
+wp:
+  build: .
+  command: core download
+  working_dir: /var/www/html
+  volumes:
+    - /var/www/html
+
+ls:
+  build: .
+  entrypoint: bash
+  command: -c "ls -l"
+  working_dir: /var/www/html
+  volumes_from:
+    - wp
+
+# Advanced example: just use bash
+wpz:
+  build: .
+  entrypoint: bash
+  links:
+    - db:db
+  command: |-
+    -e -x -c '
+    wp --allow-root core download --locale=en_NZ
+    wp --allow-root core config --skip-check --locale=en_NZ --dbname=$$DB_ENV_MYSQL_DATABASE --dbuser=$$DB_ENV_MYSQL_USER --dbpass="$$DB_ENV_MYSQL_PASSWORD" --dbhost=$$DB_PORT_3306_TCP_ADDR
+    while ! wp --allow-root core install --url="http://192.168.99.100:8080" --title="My Blog" --admin_user="root" --admin_password="xxxx" --admin_email="root@192.168.99.100"; do sleep 5; done
+    '
+
+# Advanced example: use bash and some environment configuration
+# 1. Setup a DB
+# 2. Download and configure WP
+# 3. Host a web server
 db:
   image: mysql:5.5
   environment:
-    MYSQL_ROOT_PASSWORD: example
-    MYSQL_DATABASE: wordpress
-    MYSQL_USER: wordpress
-    MYSQL_PASSWWORD: wordpress
+    MYSQL_ROOT_PASSWORD: password
+    MYSQL_DATABASE: wp
+    MYSQL_USER: wp
+    MYSQL_PASSWORD: wp
 
-wp:
+wpx:
   build: .
+  entrypoint: bash
+  command: |-
+    -x -c '
+    # Wait for the DB to be available
+    while ! mysql -h$$DB_PORT_3306_TCP_ADDR -u$$DB_ENV_MYSQL_USER -p$$DB_ENV_MYSQL_PASSWORD $$DB_ENV_MYSQL_DATABASE; do sleep 5; done
+    # Process the commands
+    ( sed -e "/^#/D" -e "s/^/wp --allow-root /" | bash -x ) <<< "$$WP_COMMANDS"
+    '
+  working_dir: /var/www/html
+  volumes:
+    - /var/www/html
   links:
-    - db:mysql
+    - db:db
   environment:
-    WP_URL: http://cli.dev
-    WP_ADMIN_USER: admin
-    WP_ADMIN_PASSWORD: admin
-    WP_ADMIN_EMAIL: admin@cli.dev
-    GH_PLUGINS: |
-      WP-API/WP-API
+    WP_COMMANDS: |-
+      core download --locale=en_NZ
+      eval "unlink('./wp-config.php');" --skip-wordpress
+      core config --locale=en_NZ --dbname=$$DB_ENV_MYSQL_DATABASE --dbuser=$$DB_ENV_MYSQL_USER --dbpass="$$DB_ENV_MYSQL_PASSWORD" --dbhost=$$DB_PORT_3306_TCP_ADDR
+      core install --url="http://192.168.99.100:8080" --title="My Blog" --admin_user="root" --admin_password="xxxx" --admin_email="root@192.168.99.100"
+
+www:
+  build: .
+  command: server --host=0.0.0.0 --port=8080 --path=/var/www/html
+  ports:
+    - 8080:8080
+  volumes_from:
+    - wpx
