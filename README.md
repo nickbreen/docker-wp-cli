@@ -11,12 +11,34 @@
 
 [WP-CLI] is a command line tool to administer a WordPress installation.
 
-[WordPress]: https://wordpress.org "WordPress &#8250; Blog Tool, Publishing Platform, and CMS"
+[WordPress]: https://wordpress.org "Blog Tool, Publishing Platform, and CMS"
 [WP-CLI]: http://wp-cli.org "A command line interface for WordPress"
 
 # Usage
 
-Everything is specified using environment variables. See the example above.
+This image is based on a cron service that runs continuously.
+
+You (currently) should specify a cron job to invoke WP's cron jobs, and disable WPP's normal wp-cron stuff (see **EXTRA_PHP** below).
+
+Everything is specified using environment variables.
+
+To automatically install WP use two containers:
+
+    # docker-compose.yml
+    # This one runs the cron service and contains the 'data' volumes
+    wp-cli:
+      image: nickbreen/wp-cli
+
+    # This one runs the setup script and then terminates.
+    wp-setup:
+      image: nickbreen/cli
+      command: /setup.sh
+      volumes_from:
+        - wp-cli
+      environment:
+        # yadda, see below
+
+# Automated Setup
 
 ## Download
 Uses ```wp core download```.
@@ -51,13 +73,6 @@ Variable             | Value inferred from            | Default
     WP_EXTRA_PHP: |
       define('DISABLE_WP_CRON', true);
 
-*Important*! If you're -cheating- using ```ErrorDocument /index.php``` instead of mod_rewrite you'll /probably/ need to coerce WP into returning a normal 200 OK status.
-
-    WP_EXTRA_PHP: |
-      header("HTTP/1.1 200 OK");
-
-This case is specifically noticed with WooCommerce.
-
 ## Installation
 Uses ```wp core install```.
 
@@ -84,7 +99,7 @@ Each theme or plugin is on its own line.
       plugin-slug
       https://plugin.domain/plugin-url.zip
 
-Themes and plugins can also be installed from [Bitbucket] and [GitHub] repositories:
+Themes and plugins can also be installed from [Bitbucket] (OAuth 1.0a supported for private repositories) and [GitHub] (HTTP Basic Auth via Token for private repositories):
 
       BB_KEY: "BitBucket API OAuth Key"
       BB_SECRET: "BitBucket API OAuth Secret"

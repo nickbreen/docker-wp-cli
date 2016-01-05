@@ -1,11 +1,35 @@
-FROM nickbreen/wp-cli:wp-api
+FROM nickbreen/cron
 
 MAINTAINER Nick Breen <nick@foobar.net.nz>
 
-USER root
+RUN DEBIAN_FRONTEND=noninteractive &&\
+  apt-get update && apt-get install -y \
+    bash-completion \
+    curl \
+    git \
+    jq \
+    less \
+    mysql-client \
+    php5-cli \
+    php5-curl \
+    php5-json \
+    php5-mysql \
+    php5-oauth \
+    zip \
+  && apt-get clean
 
-RUN export DEBIAN_FRONTEND=noninteractive &&\
-    apt-get update -q && apt-get install -qy zip && apt-get clean
+RUN mkdir /usr/local/share/php && cd /usr/local/share/php &&\
+  curl -sSfLJO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar &&\
+  php wp-cli.phar --info --allow-root &&\
+  chmod +x wp-cli.phar &&\
+  ln -s /usr/local/share/php/wp-cli.phar /usr/local/bin/wp &&\
+  wp --info --allow-root &&\
+  curl -sSfLo /etc/bash_completion.d/wp-cli https://raw.githubusercontent.com/wp-cli/wp-cli/master/utils/wp-completion.bash &&\
+  curl -sS https://getcomposer.org/installer | php &&\
+  php composer.phar -V &&\
+  chmod +x composer.phar &&\
+  ln -s /usr/local/share/php/composer.phar /usr/local/bin/composer &&\
+  composer -V
 
 ENV MYSQL_ROOT_PASSWORD="" \
     WP_LOCALE="en_NZ" \
@@ -28,6 +52,8 @@ ENV MYSQL_ROOT_PASSWORD="" \
     WP_IMPORT="" \
     WP_EXTRA_PHP=""
 
+RUN useradd -m wp && chown -R wp:wp /home/wp
+
 COPY setup.sh oauth.php /
 
 RUN php -l /oauth.php && bash -n /setup.sh
@@ -41,5 +67,3 @@ VOLUME /var/www/html /var/www/html/wp-content/uploads
 WORKDIR /var/www/html
 
 USER wp
-
-CMD ["/setup.sh"]
