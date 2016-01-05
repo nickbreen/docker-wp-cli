@@ -1,9 +1,9 @@
 
 **Important**: the apache, fpm, cron, and wp-api tags have moved to their own projects.
 
-- apache and fpm -> [nickbreen/wp-php](../nickbreen/wp-php)
-- cron -> [nickbreen/cron](../nickbreen/cron)
-- wp-api -> [nickbreen/wp-api](../nickbreen/wp-api)
+- apache and fpm -> [nickbreen/wp-php](nickbreen/wp-php)
+- cron -> [nickbreen/cron](nickbreen/cron)
+- wp-api -> [nickbreen/wp-api](nickbreen/wp-api)
 
 # What are WordPress and WP-CLI?
 
