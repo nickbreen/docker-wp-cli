@@ -1,8 +1,0 @@
-wp:
-  build: .
-  dns:
-    - 192.168.1.70
-  environment:
-    KEY: 2xbzf1uARQYs
-    SECRET: hMWetJfENFB88MhVHDYsVGqyAiNucVtG5GLHSEMJ35moHvZ3
-    WP_URL: http://conservationsupplies.dev

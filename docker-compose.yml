@@ -1,46 +1,21 @@
 db:
-  image: mysql
-  command: --innodb_file_per_table
+  image: mysql:5.5
   environment:
     MYSQL_ROOT_PASSWORD: example
-
-php:
-  image: nickbreen/wp-cli:apache
-  volumes_from:
-    - wp
-  links:
-    - db:mysql
-  environment:
-    VIRTUAL_HOST: "*.example.com"
-    NR_APP_NAME: "example-app"
-    NR_INSTALL_KEY: example-key
+    MYSQL_DATABASE: wordpress
+    MYSQL_USER: wordpress
+    MYSQL_PASSWWORD: wordpress
 
 wp:
-  image: nickbreen/wp-cli:cli
+  #image: nickbreen/wp-cli:cli
+  build: .
+  # command: ls -la
   links:
     - db:mysql
-  volumes:
-    - /var/www/html
   environment:
-    WP_DB_NAME: wp_example
-    WP_DB_USER: wp_example
-    WP_DB_PASSWORD: wp_example
-    WP_URL: http://example.com
-    WP_TITLE: Example Blog
-    WP_ADMIN_USER: example
-    WP_ADMIN_PASSWORD: example
-    WP_ADMIN_EMAIL: example@example.com
-    WP_PLUGINS: |
-      amazon-s3-and-cloudfront
-      amazon-web-services
-    WP_OPTIONS: |
-      timezone_string "Pacific/Auckland"
-      permalink_structure "\/%postname%\/"
-      aws_settings {"access_key_id":"PASTE_KEY_HERE","secret_access_key":"PASTE_SECRET_HERE"}
-      tantan_wordpress_s3 {"post_meta_version":3,"bucket":"PASTE_BUCKET_NAME_HERE","region":"PASTE_REGION_HERE","domain":"path","expires":"0","cloudfront":"","object-prefix":"wp-content\/uploads\/","copy-to-s3":"1","serve-from-s3":"1","remove-local-file":"1","ssl":"request","hidpi-images":"0","object-versioning":"0","use-yearmonth-folders":"1","enable-object-prefix":"1"}
-    BB_KEY: PASTE_BITBUCKET_KEY_HERE
-    BB_SECRET: PASTE_BITBUCKET_SECRET_HERE
-    BB_PLUGINS: |
-      owner-name/repo-name tag
-    BB_THEMES: |
-      owner-name/repo-name tag
+    WP_URL: http://cli.dev
+    WP_ADMIN_USER: admin
+    WP_ADMIN_PASSWORD: admin
+    WP_ADMIN_EMAIL: admin@cli.dev
+    GH_PLUGINS: |
+      WP-API/WP-API
