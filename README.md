@@ -1,26 +1,11 @@
-# Supported tags and respective `Dockerfile` links
-
-- [`cli` (*cli/Dockerfile*)](https://github.com/nickbreen/docker-wp-cli/blob/master/cli/Dockerfile)
-- [`apache` (*apache/Dockerfile*)](https://github.com/nickbreen/docker-wp-cli/blob/master/apache/Dockerfile)
-- [`fpm` (*fpm/Dockerfile*)](https://github.com/nickbreen/docker-wp-cli/blob/master/fpm/Dockerfile)
-
 # What is WordPress?
 
-WordPress is a free and open source blogging tool and a content management system (CMS) based on PHP and MySQL, which runs on a web hosting service. Features include a plugin architecture and a template system. WordPress is used by more than 22.0% of the top 10 million websites as of August 2013. WordPress is the most popular blogging system in use on the Web, at more than 60 million websites. The most popular languages used are English, Spanish and Bahasa Indonesia.
+[WordPress] is a free and open source blogging tool and a content management system (CMS) based on PHP and MySQL, which runs on a web hosting service. Features include a plugin architecture and a template system. WordPress is used by more than 22.0% of the top 10 million websites as of August 2013. WordPress is the most popular blogging system in use on the Web, at more than 60 million websites. The most popular languages used are English, Spanish and Bahasa Indonesia.
 
-> [wikipedia.org/wiki/WordPress](https://en.wikipedia.org/wiki/WordPress)
+[WP-CLI] is a command line tool to administer a WordPress installation.
 
-# This Image
-
-[WP-CLI] installed, configured, and managed WordPress site.
-
-Inlcudes the New Relic PHP agent.
-
-Themes, plugins, and options can be specified as environment variables for configuration on start up.  The DB will be created if required and requires ```MYSQL_ENV_MYSQL_ROOT_PASSWORD``` be set.
-
-See docker-compose.yml for an example of configuration.
-
-[WP-CLI] http://wp-cli.org "A command line interface for WordPress"
+[WordPress]: https://wordpress.org "WordPress &#8250; Blog Tool, Publishing Platform, and CMS"
+[WP-CLI]: http://wp-cli.org "A command line interface for WordPress"
 
 # Usage
 
@@ -35,6 +20,7 @@ The latest WordPress version will be downloaded and extracted.
 Uses ``` wp core config```.
 
 The database configuration can be specified explicitly with:
+
 - ```WP_DB_HOST```
 - ```WP_DB_PORT```
 - ```WP_DB_NAME```
@@ -85,24 +71,26 @@ Each theme or plugin is on its own line.
 
     WP_THEMES: |
       theme-slug
-      theme-slug http://theme.domain/theme-url.zip
+      http://theme.domain/theme-url.zip
 
     WP_PLUGINS: |
       plugin-slug
-      plugin-slug https://plugin.domain/plugin-url.zip
+      https://plugin.domain/plugin-url.zip
 
-Themes and plugins can also be installed from private [Bitbucket] repositories:
+Themes and plugins can also be installed from [Bitbucket] and [GitHub] repositories:
 
       BB_KEY: "BitBucket API OAuth Key"
       BB_SECRET: "BitBucket API OAuth Secret"
       BB_PLUGINS: |
-        plugin-slug account/repo tag
+        account/repo [tag]
       BB_THEMES: |
-        theme-slug account/repo tag
+        account/repo [tag]
+      GH_TOKEN: xxxxxxxxx
+      GH_THEME: |
+        CherryFramework/CherryFramework
 
-One quirk of this method is that each version/tag of a theme or plugin will be installed to a unique directory derived from the account, repository, and  commit, e.g. account_repo_cafe6789. Any commit-ish should work.
-
-[Bitbucket]: http://bitbucket "Bitbucket"
+[Bitbucket]: https://bitbucket.com "Bitbucket"
+[GitHub]: https://github.com "GitHub"
 
 ## Options
 Uses ```wp option set```.
@@ -111,40 +99,14 @@ Any WordPress options can be set as JSON using ```WP_OPTIONS```. E.g.
 
     WP_OPTIONS: |
       timezone_string "Pacific/Auckland"
-      permalink_structure "\/%postname%\/"
       some_complex_option {"access_key_id":"...","secret_access_key":"..."}
 
 Simple strings must be quoted.
 
-## New Relic
+## Arbitrary WP-CLI Commands
 
-_Applies to ```apache``` and ```fpm``` only.
+Any WP-CLI command can be executed; e.g.:
 
-Configure your key and application name as environment variables. The application name defaults to the value of ```$WP_URL```.
-
-    NR_APP_NAME: "application-name"
-    NR_INSTALL_KEY: "cafe..1234"
-
-If either of the variables is an empty string the new relic agent configuration will not be installed.
-
-## Administration & Management
-
-Use [WP-CLI] directly:
-
-    docker exec -u www-data CONTAINER wp set option siteurl http://example.com
-
-Run an interactive shell to administer the installation.
-
-    docker exec -u www-data -it CONTAINER bash
-    www-data@CONTAINER$ wp core check-update
-    www-data@CONTAINER$ wp core update
-    www-data@CONTAINER$ wp core update-db
-
-One can source the setup script into the shell to use the functions defined within. Consult ```setup.sh``` for documentation.
-
-    docker exec -u www-data -it CONTAINER bash
-    www-data@CONTAINER$ . /setup.sh
-    www-data@CONTAINER$ # Now install a new theme
-    www-data@CONTAINER$ install_a theme <<< "theme-slug"
-    www-data@CONTAINER$ # Now install a BB plugin
-    www-data@CONTAINER$ install_b plugin <<< "plugin-slug account/repo tag"
+    WP_COMMANDS: |
+      rewrite structure /%postname%
+      rewrite flush
