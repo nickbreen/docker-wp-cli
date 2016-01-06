@@ -43,8 +43,9 @@ And in ```docker-compose.yml```:
       environment:
         CRON_TAB: |-
           # Execute WP's cron jobs
-          * * * * * wp cron event list --format=csv  --fields=hook,next_run_relative | awk -F ',' '$2 == "now" {print $1}' | xargs -l1 wp cron event run
+          PATH=/usr/local/bin:$PATH
+          * * * * * cd /var/www/html; wp cron event list --format=csv --fields=hook,next_run_relative | awk -F ',' '$$2 == "now" {print $$1}' | xargs -l1 cron event run
           # Backup WP
-          0 3 * * * wp db export 
+          0 3 * * * wp db export
           # Update WP
           0 4 * * * wp core update; wp core update-db; wp theme update --all; wp plugin update --all
