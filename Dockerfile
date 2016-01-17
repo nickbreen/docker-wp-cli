@@ -1,12 +1,9 @@
-FROM nickbreen/cron
-
-# Extending 'cron' is a little odd, but it's useful for setting up a container
-# for cron jobs that use WP-CLI.
+FROM phusion/baseimage:0.9.18
 
 MAINTAINER Nick Breen <nick@foobar.net.nz>
 
 RUN DEBIAN_FRONTEND=noninteractive &&\
-  apt-get update && apt-get install -y \
+  apt-get update -qqy && apt-get install -qqy \
     bash-completion \
     curl \
     git \
@@ -19,14 +16,14 @@ RUN DEBIAN_FRONTEND=noninteractive &&\
     php5-mysql \
     php5-oauth \
     zip \
-  && apt-get clean
+  && apt-get clean -qqy
 
 RUN mkdir /usr/local/share/php && cd /usr/local/share/php &&\
   curl -sSfLJO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar &&\
-  php wp-cli.phar --info --allow-root &&\
+  php wp-cli.phar --allow-root cli version &&\
   chmod +x wp-cli.phar &&\
   ln -s /usr/local/share/php/wp-cli.phar /usr/local/bin/wp &&\
-  wp --info --allow-root &&\
+  wp --allow-root cli version &&\
   curl -sSfLo /etc/bash_completion.d/wp-cli https://raw.githubusercontent.com/wp-cli/wp-cli/master/utils/wp-completion.bash &&\
   curl -sS https://getcomposer.org/installer | php &&\
   php composer.phar -V &&\
@@ -34,5 +31,5 @@ RUN mkdir /usr/local/share/php && cd /usr/local/share/php &&\
   ln -s /usr/local/share/php/composer.phar /usr/local/bin/composer &&\
   composer -V
 
-ENTRYPOINT [ "wp", "--allow-root" ]
+ENTRYPOINT [ "/sbin/my_init", "--", "wp", "--allow-root" ]
 CMD [ "help" ]
