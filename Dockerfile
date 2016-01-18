@@ -1,4 +1,4 @@
-FROM phusion/baseimage:0.9.18
+FROM nickbreen/cron
 
 MAINTAINER Nick Breen <nick@foobar.net.nz>
 
