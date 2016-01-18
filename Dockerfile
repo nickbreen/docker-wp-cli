@@ -31,5 +31,5 @@ RUN mkdir /usr/local/share/php && cd /usr/local/share/php &&\
   ln -s /usr/local/share/php/composer.phar /usr/local/bin/composer &&\
   composer -V
 
-ENTRYPOINT [ "/sbin/my_init", "--", "wp", "--allow-root" ]
-CMD [ "help" ]
+# Actually just happily run as the daemon.
+#CMD [ "/sbin/my_init", "--", "wp", "--allow-root", "help" ]
