@@ -1,9 +1,9 @@
-FROM nickbreen/cron
+FROM nickbreen/cron:v1.0.0
 
 MAINTAINER Nick Breen <nick@foobar.net.nz>
 
-RUN DEBIAN_FRONTEND=noninteractive &&\
-  apt-get update -qqy && apt-get install -qqy \
+RUN apt-get update -qqy && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -qqy \
     bash-completion \
     curl \
     git \
@@ -30,6 +30,3 @@ RUN mkdir /usr/local/share/php && cd /usr/local/share/php &&\
   chmod +x composer.phar &&\
   ln -s /usr/local/share/php/composer.phar /usr/local/bin/composer &&\
   composer -V
-
-# Actually just happily run as the daemon.
-#CMD [ "/sbin/my_init", "--", "wp", "--allow-root", "help" ]
