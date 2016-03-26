@@ -18,15 +18,19 @@ RUN apt-get update -qqy && \
     zip \
   && apt-get clean -qqy
 
-RUN mkdir /usr/local/share/php && cd /usr/local/share/php &&\
-  curl -sSfLJO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar &&\
-  php wp-cli.phar --allow-root cli version &&\
-  chmod +x wp-cli.phar &&\
-  ln -s /usr/local/share/php/wp-cli.phar /usr/local/bin/wp &&\
-  wp --allow-root cli version &&\
-  curl -sSfLo /etc/bash_completion.d/wp-cli https://raw.githubusercontent.com/wp-cli/wp-cli/master/utils/wp-completion.bash &&\
-  curl -sS https://getcomposer.org/installer | php &&\
-  php composer.phar -V &&\
-  chmod +x composer.phar &&\
-  ln -s /usr/local/share/php/composer.phar /usr/local/bin/composer &&\
+ENV PHP_DIR=/usr/local/share/php WP_CLI_VERSION=0.23.0 COMPOSER_VERSION=1.0.0-beta1
+
+RUN mkdir -p $PHP_DIR
+
+RUN curl -sSfJLo $PHP_DIR/composer.phar https://getcomposer.org/download/$COMPOSER_VERSION/composer.phar | php &&\
+  php $PHP_DIR/composer.phar -V &&\
+  chmod +x $PHP_DIR/composer.phar &&\
+  ln -s $PHP_DIR/composer.phar /usr/local/bin/composer &&\
   composer -V
+
+RUN curl -sSfLo /etc/bash_completion.d/wp-cli https://raw.githubusercontent.com/wp-cli/wp-cli/v$WP_CLI_VERSION/utils/wp-completion.bash &&\
+  curl -sSfJLo $PHP_DIR/wp-cli.phar https://github.com/wp-cli/wp-cli/releases/download/v$WP_CLI_VERSION/wp-cli-$WP_CLI_VERSION.phar &&\
+  php $PHP_DIR/wp-cli.phar --allow-root cli version &&\
+  chmod +x $PHP_DIR/wp-cli.phar &&\
+  ln -s $PHP_DIR/wp-cli.phar /usr/local/bin/wp &&\
+  wp --allow-root cli version
