@@ -1,4 +1,8 @@
-wp:
-  image: nickbreen/wp-cli:v1.1.0
-  command: wp --allow-root core download
-  working_dir: /var/www
+version: '2'
+services:
+    wp:
+      image: nickbreen/wp-cli
+      build:
+        context: .
+      command: /sbin/my_init -- wp --allow-root core download
+      working_dir: /var/www
