@@ -1,8 +1,87 @@
 version: '2'
 services:
-    wp:
-      image: nickbreen/wp-cli
-      build:
-        context: .
-      command: /sbin/my_init -- wp --allow-root core download
-      working_dir: /var/www
+  db:
+    image: mysql:5.6
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+  wp:
+    image: nickbreen/wp-cli
+    build:
+      context: .
+    environment:
+      CRON_D_WP_CLI_CONFIG: |
+        * * * * * wp (echo Hello `whoami`!; find /hello) | logger --tag hello
+        @reboot root (sv start syslog-ng || exit 1; touch /hello; find /hello; sh -x -e - < /etc/container_environment/WP_CLI_BOOTSTRAP) 2>&1 | logger --tag bootstrap
+
+      WP_CLI_BOOTSTRAP: |
+        #!/bin/sh
+        echo Hello `whoami`!
+        chpst -u wp wp cli version
+        chpst -u wp mkdir -p /home/wp/.wp-cli
+        cp /etc/container_environment/WP_CLI_CONFIG /home/wp/.wp-cli/config.yml
+        chown wp.wp /home/wp/.wp-cli/config.yml
+        find /home/wp/.wp-cli/ -ls
+        mkdir -p /var/www && chown wp.www-data -R /var/www
+        HOME=/home/wp chpst -u wp sh - < /etc/container_environment/WP_CLI_COMMAND
+
+      WP_CLI_COMMAND: |
+        #!/bin/bash
+        echo $$HOME
+        PATH=/usr/local/bin:$$PATH
+        wp core download
+        wp core config
+        wp core multisite-install
+        wp plugin install jetpack --activate-network
+        wp theme install spacious && wp theme enable spacious
+        wp site create --slug=apple --title=Apple
+        ID=$$(wp site create --slug=banana --title=Banana --porcelain)
+        wp db query "UPDATE wp_blogs SET domain = 'banana.dev' WHERE blog_id = $$ID"
+        wp --url=banana.dev option update siteurl "http://banana.dev"
+        wp --url=banana.dev option update home "http://banana.dev"
+
+      WP_CLI_CONFIG: |
+        path: /var/www
+        core download:
+          locale: en_NZ
+          version: 4.5.3
+        core config:
+          locale: en_NZ
+          dbname: wordpress
+          dbuser: wordpress
+          dbpass: wordpress
+          dbhost: db
+          skip-salts: true
+          extra-php: |
+            if (isset($$_SERVER['HTTP_HOST']))
+              define('COOKIE_DOMAIN', preg_replace('/^www\./', '', $$_SERVER['HTTP_HOST']));
+            define('MULTISITE', true);
+            define('SUBDOMAIN_INSTALL', true);
+            define('DOMAIN_CURRENT_SITE', 'wp.dev');
+            define('PATH_CURRENT_SITE', '/');
+            define('SITE_ID_CURRENT_SITE', 1);
+            define('BLOG_ID_CURRENT_SITE', 1);
+            define('DISABLE_WP_CRON', TRUE);
+            define('WP_MEMORY_LIMIT', '128M');
+            if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && 'https' == $$_SERVER['HTTP_X_FORWARDED_PROTO'])
+              $$_SERVER['HTTPS'] = 'on';
+            define('JETPACK_DEV_DEBUG', true);
+            define('WP_DEBUG', true);
+            define('AUTH_KEY', 'JkbXQ_codG%ioXLZsw`R{[<.JYxY`B-`Pyp,kqF6+4)^*%eb,/%G^]OP5|B-vcj:');
+            define('SECURE_AUTH_KEY', ' dfeHW[qq^oeNM+e$$UkrE5@oN~2c7f5Y*u1z3+[JG*->-39a^Ew6/fz=-6stv!Ch');
+            define('LOGGED_IN_KEY', 'P##7H!+,9l#==c2+)gPk?h`fJ|GG|zUz-zMOzWl &~<3k1}a`r`}e61.LN*?d=%K');
+            define('NONCE_KEY', 'o{Tt11)C:g#t*?A(5EqrLj]K@N^YLO@M@r0PcIDuLfK|mr$$O@xWc!g+Z4< ?>hB^');
+            define('AUTH_SALT', '!8f9v:5y^rp7X[+z.Xt?N2/,&UWE|`3IESOrU 3j |qF_W4`61NJM-T `nF%eGV}');
+            define('SECURE_AUTH_SALT', '`^_PA hj3f-,Xc;$$Wnd[/*Wz|zX?h]i+-p9KDNv4BY4X/cL@mZP]?c}y4|SCZ@Qv');
+            define('LOGGED_IN_SALT', 'lQLo{PM6|$$<rD.NNcam^LrOJ/WKG;ec^>2P=7x: 3s[6cc4~:)D>jqd+&,mGdy]C');
+            define('NONCE_SALT', 'e+m|J_q5Kw7LD0(RITMW7`R+]E~V~!G!NJWYRZ?Ak03[|!/.ZgWdXBb/*bc)=}h>');
+        core multisite-install:
+          url: "http://wp.dev"
+          subdomains: true
+          title: "WP Dev"
+          admin_user: admin
+          admin_password: admin
+          admin_email: webmaster@wp.dev
+          skip-email: true
