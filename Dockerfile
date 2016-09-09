@@ -1,4 +1,4 @@
-FROM nickbreen/wp-php:v1.3.0
+FROM nickbreen/wp-php:v1.3.3
 
 MAINTAINER Nick Breen <nick@foobar.net.nz>
 
