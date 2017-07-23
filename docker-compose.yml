@@ -8,7 +8,7 @@ services:
       MYSQL_USER: wordpress
       MYSQL_PASSWORD: wordpress
   wp:
-    image: nickbreen/wp-cli
+    image: nickbreen/wp-cli:develop
     build:
       context: .
     environment:
