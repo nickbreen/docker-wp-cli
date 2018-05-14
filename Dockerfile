@@ -1,33 +1,31 @@
 FROM nickbreen/wp-php:v1.4.0
 
-MAINTAINER Nick Breen <nick@foobar.net.nz>
+LABEL Author="Nick Breen <nick@foobar.net.nz>"
 
 RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    bash-completion \
-    curl \
-    git \
-    jq \
-    less \
-    mysql-client \
-    zip \
+  bash-completion \
+  curl \
+  git \
+  jq \
+  less \
+  mysql-client \
+  zip \
   && apt-get clean -y
 
 ARG PHP_DIR=/usr/local/share/php
-ARG WP_CLI_VERSION=1.2.1
-ARG COMPOSER_VERSION=1.4.2
+ARG WP_CLI_VERSION=1.5.1
+ARG COMPOSER_VERSION=1.6.5
 
 RUN useradd -m -s /bin/bash wp \
- && mkdir -p $PHP_DIR \
- && curl -sSfLo /etc/bash_completion.d/composer https://raw.githubusercontent.com/iArren/composer-bash-completion/master/composer \
- && curl -sSfJLo $PHP_DIR/composer.phar https://getcomposer.org/download/$COMPOSER_VERSION/composer.phar \
- && chmod +x $PHP_DIR/composer.phar \
- && ln -s $PHP_DIR/composer.phar /usr/local/bin/composer \
- && chpst -u wp composer -V \
- && curl -sSfLo /etc/bash_completion.d/wp-cli https://raw.githubusercontent.com/wp-cli/wp-cli/v$WP_CLI_VERSION/utils/wp-completion.bash \
- && curl -sSfJLo $PHP_DIR/wp-cli.phar https://github.com/wp-cli/wp-cli/releases/download/v$WP_CLI_VERSION/wp-cli-$WP_CLI_VERSION.phar \
- && chmod +x $PHP_DIR/wp-cli.phar \
- && ln -s $PHP_DIR/wp-cli.phar /usr/local/bin/wp \
- && chpst -u wp wp cli version
-
-WORKDIR /home/wp
+  && mkdir -p $PHP_DIR \
+  && curl -sSfLo /etc/bash_completion.d/composer https://raw.githubusercontent.com/iArren/composer-bash-completion/master/composer \
+  && curl -sSfJLo $PHP_DIR/composer.phar https://getcomposer.org/download/$COMPOSER_VERSION/composer.phar \
+  && chmod +x $PHP_DIR/composer.phar \
+  && ln -s $PHP_DIR/composer.phar /usr/local/bin/composer \
+  && chpst -u wp composer -V \
+  && curl -sSfLo /etc/bash_completion.d/wp-cli https://raw.githubusercontent.com/wp-cli/wp-cli/v$WP_CLI_VERSION/utils/wp-completion.bash \
+  && curl -sSfJLo $PHP_DIR/wp-cli.phar https://github.com/wp-cli/wp-cli/releases/download/v$WP_CLI_VERSION/wp-cli-$WP_CLI_VERSION.phar \
+  && chmod +x $PHP_DIR/wp-cli.phar \
+  && ln -s $PHP_DIR/wp-cli.phar /usr/local/bin/wp \
+  && chpst -u wp wp cli version
