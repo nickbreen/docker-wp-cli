@@ -1,7 +1,3 @@
-FROM composer:1.6.5 AS composer
-
-FROM wordpress:cli-1.5.1-php7.0 AS cli
-
 FROM phusion/baseimage:0.10.1
 
 LABEL maintainer="nick@foobar.net.nz"
@@ -30,8 +26,8 @@ RUN apt-get update -qqy \
 
 RUN phpenmod curl gd imagick json mbstring memcache mysqli oauth opcache
 
-COPY --from=composer /usr/bin/composer /usr/local/bin/composer
-COPY --from=cli /usr/local/bin/wp /usr/local/bin/wp
+COPY --from=composer:1.6.5 /usr/bin/composer /usr/local/bin/composer
+COPY --from=wordpress:cli-1.5.1-php7.0 /usr/local/bin/wp /usr/local/bin/wp
 
 RUN useradd -m -s /bin/bash wp \
   && composer -V \
